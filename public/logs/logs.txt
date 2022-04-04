@@ -1,0 +1,142 @@
+ERROR LOG
+---------------
+Date : Fri Apr 01 2022 17:21:03 GMT+0530 (India Standard Time)
+API NAME : trainerdetails
+Request Body : {"userId":null}
+---------------
+CastError: Cast to ObjectId failed for value "{ _id: null }" (type Object) at path "_id" for model "trainerusers"
+---------------
+---------------
+Date : Fri Apr 01 2022 17:26:36 GMT+0530 (India Standard Time)
+API NAME : trainerdetails
+Request Body : {"userId":null}
+---------------
+CastError: Cast to ObjectId failed for value "{ _id: null }" (type Object) at path "_id" for model "trainerusers"
+---------------
+---------------
+Date : Fri Apr 01 2022 17:26:53 GMT+0530 (India Standard Time)
+API NAME : trainerdetails
+Request Body : {"userId":null}
+---------------
+CastError: Cast to ObjectId failed for value "{ _id: null }" (type Object) at path "_id" for model "trainerusers"
+---------------
+---------------
+Date : Sat Apr 02 2022 12:23:53 GMT+0530 (India Standard Time)
+API NAME : VerifyToken
+Request Body : {}
+---------------
+MongooseServerSelectionError: connect EHOSTUNREACH 54.201.160.69:58173
+---------------
+---------------
+Date : Sat Apr 02 2022 12:24:11 GMT+0530 (India Standard Time)
+API NAME : VerifyToken
+Request Body : {}
+---------------
+MongooseServerSelectionError: connect EHOSTUNREACH 54.201.160.69:58173
+---------------
+---------------
+Date : Sat Apr 02 2022 12:24:49 GMT+0530 (India Standard Time)
+API NAME : VerifyToken
+Request Body : {}
+---------------
+MongooseServerSelectionError: connect EHOSTUNREACH 54.201.160.69:58173
+---------------
+---------------
+Date : Sat Apr 02 2022 13:20:33 GMT+0530 (India Standard Time)
+API NAME : VerifyToken
+Request Body : {}
+---------------
+MongooseServerSelectionError: connect EHOSTUNREACH 54.201.160.69:58173
+---------------
+---------------
+Date : Sat Apr 02 2022 13:21:19 GMT+0530 (India Standard Time)
+API NAME : VerifyToken
+Request Body : {}
+---------------
+MongooseServerSelectionError: connect EHOSTUNREACH 54.201.160.69:58173
+---------------
+---------------
+Date : Sat Apr 02 2022 13:22:20 GMT+0530 (India Standard Time)
+API NAME : VerifyToken
+Request Body : {}
+---------------
+MongooseServerSelectionError: connect EHOSTUNREACH 54.201.160.69:58173
+---------------
+---------------
+Date : Sat Apr 02 2022 13:23:20 GMT+0530 (India Standard Time)
+API NAME : VerifyToken
+Request Body : {}
+---------------
+MongooseServerSelectionError: connect EHOSTUNREACH 54.201.160.69:58173
+---------------
+---------------
+Date : Sat Apr 02 2022 13:38:17 GMT+0530 (India Standard Time)
+API NAME : VerifyToken
+Request Body : {}
+---------------
+MongooseServerSelectionError: connect EHOSTUNREACH 54.201.160.69:58173
+---------------
+---------------
+Date : Sat Apr 02 2022 14:28:11 GMT+0530 (India Standard Time)
+API NAME : VerifyToken
+Request Body : {}
+---------------
+MongooseServerSelectionError: connect EHOSTUNREACH 54.201.160.69:58173
+---------------
+---------------
+Date : Sat Apr 02 2022 14:28:39 GMT+0530 (India Standard Time)
+API NAME : VerifyToken
+Request Body : {}
+---------------
+MongooseServerSelectionError: connect EHOSTUNREACH 54.201.160.69:58173
+---------------
+---------------
+Date : Sat Apr 02 2022 18:19:26 GMT+0530 (India Standard Time)
+API NAME : VerifyToken
+Request Body : {}
+---------------
+MongooseServerSelectionError: connect EHOSTUNREACH 54.201.160.69:58173
+---------------
+---------------
+Date : Sat Apr 02 2022 18:19:26 GMT+0530 (India Standard Time)
+API NAME : VerifyToken
+Request Body : {}
+---------------
+MongooseServerSelectionError: connect EHOSTUNREACH 54.201.160.69:58173
+---------------
+---------------
+Date : Sat Apr 02 2022 18:19:26 GMT+0530 (India Standard Time)
+API NAME : VerifyToken
+Request Body : {}
+---------------
+MongooseServerSelectionError: connect EHOSTUNREACH 54.201.160.69:58173
+---------------
+---------------
+Date : Sat Apr 02 2022 18:19:26 GMT+0530 (India Standard Time)
+API NAME : VerifyToken
+Request Body : {}
+---------------
+MongooseServerSelectionError: connect EHOSTUNREACH 54.201.160.69:58173
+---------------
+---------------
+Date : Sat Apr 02 2022 18:19:26 GMT+0530 (India Standard Time)
+API NAME : VerifyToken
+Request Body : {}
+---------------
+MongooseServerSelectionError: connect EHOSTUNREACH 54.201.160.69:58173
+---------------
+---------------
+Date : Sat Apr 02 2022 18:19:28 GMT+0530 (India Standard Time)
+API NAME : VerifyToken
+Request Body : {}
+---------------
+MongooseServerSelectionError: connect EHOSTUNREACH 54.201.160.69:58173
+---------------
+---------------
+Date : Sat Apr 02 2022 18:19:31 GMT+0530 (India Standard Time)
+API NAME : VerifyToken
+Request Body : {}
+---------------
+MongooseServerSelectionError: connect EHOSTUNREACH 54.201.160.69:58173
+---------------
+---------------

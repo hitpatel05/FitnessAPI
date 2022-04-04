@@ -1,0 +1,39 @@
+{
+  "name": "knktfitnessapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sdeitech/KNKTfitnessAPI.git"
+  },
+  "author": "KNKT Fitness",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sdeitech/KNKTfitnessAPI/issues"
+  },
+  "homepage": "https://github.com/sdeitech/KNKTfitnessAPI#readme",
+  "dependencies": {
+    "@hapi/joi": "^17.1.1",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "cryptr": "^6.0.2",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "express-fileupload": "^1.2.1",
+    "file-system": "^2.2.2",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^6.0.11",
+    "multer": "^1.4.3",
+    "nodemailer": "^6.7.0",
+    "nodemon": "^2.0.14",
+    "stripe": "^8.195.0",
+    "twilio": "^3.75.0"
+  }
+}

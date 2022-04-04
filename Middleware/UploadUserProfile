@@ -1,0 +1,31 @@
+const multer = require("multer");
+const path = require("path");
+
+const Storage = multer.diskStorage({
+    destination: './public/profile',
+    filename: (req, file, callback) => {
+        return callback(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`);
+    }
+});
+
+const FileFilter = (req, file, cb) => {
+    if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
+        cb(null, true);
+    } else {
+        cb(null, false);
+        return cb(new Error('Only .png, .jpg and .jpeg format allowed.'));
+    }
+};
+
+const Limits = { fileSize: 1024 * 1024 * 1 };// for 1MB
+
+const UploadImage = multer({
+    storage: Storage,
+    fileFilter: FileFilter,
+    limits: Limits,
+    onError: function (err, next) {
+        next(err);
+    }
+}).single('profile');
+
+module.exports = UploadImage;
