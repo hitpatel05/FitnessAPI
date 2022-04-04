@@ -57,6 +57,12 @@ app.get("/public/profile/:path", (req, res) => {
     res.download(__dirname + "/public/profile/" + req.params.path);
 });
 
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "https://create-node-fitness-app.herokuapp.com");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 //Handdle unexpected error
 app.use(function (error, req, res, next) {
     return res.status(200).json({ status: 2, message: error.message });
@@ -65,12 +71,7 @@ app.use(function (error, req, res, next) {
 app.all("*", (req, res) => {
     res.status(404).json({ status: 2, message: "Not found." });
 });
-app.all('*', function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "X-Requested-With");
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
-    next();
-});
+
 
 app.listen(PORT, () => {
     console.log(`Server started at ${PORT} port.`);
