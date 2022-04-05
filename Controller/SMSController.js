@@ -9,7 +9,7 @@ async function SendTextMessage(data) {
             .create({
                 body: data.body,
                 from: '+19035468255 ',
-                to: data.number
+                to: data.number || ""
             })
             .then(message => {
                 console.log("Id " + message.sid);
