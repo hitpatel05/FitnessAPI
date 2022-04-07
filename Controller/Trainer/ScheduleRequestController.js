@@ -4,6 +4,7 @@ const Trainers = require("../../Model/Trainer/UserSchema");
 const { SendTextMessage } = require("../SMSController");
 const { errorLog } = require("../Errorcontroller");
 const mongoose = require('mongoose');
+
 const ScheduleRequestUpdate = async (req, res) => {
     try {
         if (!req.user.isAuthenticated)
@@ -14,30 +15,13 @@ const ScheduleRequestUpdate = async (req, res) => {
             scheduleRequestInput.requeststatus = req.body.status;
             scheduleRequestInput.reason = (req.body.status == 1) ? "" : req.body.reason;
             scheduleRequestInput.save();
-
-            // if (req.body.status == 1) {
-            //     const trainerdata = Trainers.findOne({ _id: mongoose.Types.ObjectId(scheduleRequestInput.trainerid) });
-            //     if (trainerdata) {
-            //         // update session value - accept session time.
-            //         const userdata = Users.findOne({ _id: mongoose.Types.ObjectId(scheduleRequestInput.userid) });
-            //         if (userdata) {
-            //             if((trainerdata.type || "").toLowerCase() == "standard") {
-            //                 userdata.standersession = (userdata.standersession) - (req.body.noofsession || 0);
-            //             } else {
-            //                 userdata.elitesession = (userdata.elitesession) - (req.body.noofsession || 0);
-            //             }
-            //             userdata.save();
-            //         }
-            //         // No. of Perc to transfer In trainer account depends trainer type.
-            //     }
-            // }
             const userdata = await Users.findOne({ _id: mongoose.Types.ObjectId(scheduleRequestInput.userid) });
             const trainerdata = await Trainers.findOne({ _id: mongoose.Types.ObjectId(scheduleRequestInput.trainerid) });
             // Client SMS Code
             if (req.body.status != 1) {
                 let msg = userdata.firstname + " your session request is reject by " + trainerdata.firstname + "."
                 var jsonData = {
-                    date:  new Date(),
+                    date: new Date(),
                     title: "Reject session request",
                     description: msg,
                     sentby: req.user._id || "-",
@@ -60,6 +44,7 @@ const ScheduleRequestUpdate = async (req, res) => {
         return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
     }
 };
+
 const SessionActiveStatusUpdate = async (req, res) => {
     try {
         console.log(req.body)
@@ -89,27 +74,17 @@ const SessionActiveStatusUpdate = async (req, res) => {
         return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
     }
 };
+
 const getSessionRequest = async (req, res) => {
     try {
         if (!req.user.isAuthenticated)
             return res.status(200).json({ status: 2, message: "Please login to get profile." });
         var d = new Date();
         d.setHours(0, 0, 0, 0);
-        //const sessionRequestlist = await ScheduleRequestSchema.find({ requeststatus: 0, trainerid: req.user._id });
         const sessionRequestlist = await ScheduleRequestSchema.aggregate([
-            //{ $match: { requeststatus: 0, trainerid: req.user._id } },
             { $match: { requeststatus: 0, trainerid: req.user._id, date: { $gte: d } } },
             { $sort: { date: -1 } },
             { "$addFields": { "tId": { "$toObjectId": "$trainerid" }, "cId": { "$toObjectId": "$userid" } } },
-            // {
-            //     $lookup: {
-            //         from: "trainerusers",
-            //         localField: "tId",
-            //         foreignField: "_id",
-            //         as: "trainer_data"
-            //     }
-            // },
-            // { $unwind: "$trainer_data" },
             {
                 $lookup: {
                     from: "clientusers",
@@ -120,20 +95,10 @@ const getSessionRequest = async (req, res) => {
             },
             { $unwind: "$user_data" },
         ]);
-        //const sessionAcceptlist = await ScheduleRequestSchema.find({ requeststatus: 1, trainerid: req.user._id });
         const sessionAcceptlist = await ScheduleRequestSchema.aggregate([
-            { $match: { requeststatus: 1, trainerid: req.user._id , date: { $gte: d }} },
+            { $match: { requeststatus: 1, trainerid: req.user._id, date: { $gte: d } } },
             { $sort: { date: -1 } },
             { "$addFields": { "tId": { "$toObjectId": "$trainerid" }, "cId": { "$toObjectId": "$userid" } } },
-            // {
-            //     $lookup: {
-            //         from: "trainerusers",
-            //         localField: "tId",
-            //         foreignField: "_id",
-            //         as: "trainer_data"
-            //     }
-            // },
-            // { $unwind: "$trainer_data" },
             {
                 $lookup: {
                     from: "clientusers",
@@ -155,6 +120,122 @@ const getSessionRequest = async (req, res) => {
         return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
     }
 };
+
+const getPendingRequest = async (req, res) => {
+    try {
+        if (!req.user.isAuthenticated)
+            return res.status(200).json({ status: 2, message: "Please login to get profile." });
+
+        const limitValue = req.body.limitValue || 10;
+        const pageNumber = req.body.pageNumber || 1;
+
+        var d = new Date();
+        console.log(d)
+        const sessionRequestlist = await ScheduleRequestSchema.aggregate([
+            { $match: { requeststatus: 0, trainerid: req.user._id, enddatetime: { $gte: d } } },
+            { $sort: { date: 1 } },
+            { "$addFields": { "tId": { "$toObjectId": "$trainerid" }, "cId": { "$toObjectId": "$userid" } } },
+            {
+                $lookup: {
+                    from: "clientusers",
+                    localField: "cId",
+                    foreignField: "_id",
+                    as: "user_data"
+                }
+            },
+            { $unwind: "$user_data" },
+            {
+                $facet: {
+                    paginatedResults: [
+                        { $skip: (pageNumber - 1) * limitValue },
+                        { $limit: limitValue },
+                    ],
+                    totalCount: [
+                        {
+                            $count: 'count'
+                        }
+                    ]
+                }
+            }
+        ]);
+        return res.status(200).json({ status: 1, message: "Get successfully.", result: sessionRequestlist });
+    }
+    catch (err) {
+        errorLog("getPendingRequest", req.body, err);
+        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
+    }
+};
+
+const getAcceptRequest = async (req, res) => {
+    try {
+        if (!req.user.isAuthenticated)
+            return res.status(200).json({ status: 2, message: "Please login to get profile." });
+
+        const limitValue = req.body.limitValue || 10;
+        const pageNumber = req.body.pageNumber || 1;
+
+        var d = new Date();
+        const sessionAcceptlist = await ScheduleRequestSchema.aggregate([
+            { $match: { requeststatus: 1, trainerid: req.user._id, enddatetime: { $gte: d } } },
+            { $sort: { date: 1 } },
+            { "$addFields": { "tId": { "$toObjectId": "$trainerid" }, "cId": { "$toObjectId": "$userid" } } },
+            {
+                $lookup: {
+                    from: "clientusers",
+                    localField: "cId",
+                    foreignField: "_id",
+                    as: "user_data"
+                }
+            },
+            { $unwind: "$user_data" },
+            {
+                $project: {
+                    cId: 1,
+                    createdAt: 1,
+                    date: 1,
+                    enddatetime: 1,
+                    endhour: 1,
+                    reason: 1,
+                    requeststatus: 1,
+                    startdatetime: 1,
+                    starthour: 1,
+                    tId: 1,
+                    trainerid: 1,
+                    updatedAt: 1,
+                    user_data: 1,
+                    userid: 1,
+                    _id: 1,
+                    isVideocall: {
+                        $cond: {
+                            if: { $gte: ["$enddatetime", d]} && { $lt: ["$startdatetime",d] },
+                            then: 1,
+                            else: 0
+                        }
+                    }
+                }
+            },
+            {
+                $facet: {
+                    paginatedResults: [
+                        { $skip: (pageNumber - 1) * limitValue },
+                        { $limit: limitValue },
+                    ],
+                    totalCount: [
+                        {
+                            $count: 'count'
+                        }
+                    ]
+                }
+            }
+        ]);
+        return res.status(200).json({ status: 1, message: "Get successfully.", result: sessionAcceptlist });
+    }
+    catch (err) {
+        errorLog("getAcceptRequest", req.body, err);
+        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
+    }
+};
+
 const workout = async (req, res) => {
     try {
         if (!req.user.isAuthenticated)
@@ -169,7 +250,7 @@ const workout = async (req, res) => {
             // Client SMS Code
             let msg = userdata.firstname + " session workout form fill."
             var jsonData = {
-                date:  new Date(),
+                date: new Date(),
                 title: "Fill session workout",
                 description: msg,
                 sentby: req.user._id || "-",
@@ -190,4 +271,5 @@ const workout = async (req, res) => {
         return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
     }
 };
-module.exports = { ScheduleRequestUpdate, SessionActiveStatusUpdate, getSessionRequest, workout };
+
+module.exports = { ScheduleRequestUpdate, SessionActiveStatusUpdate, getSessionRequest, workout, getPendingRequest, getAcceptRequest };

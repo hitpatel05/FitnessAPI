@@ -218,17 +218,12 @@ const getUpcommingSession = async (req, res) => {
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
 
-        const objRes = {
-            list: [],
-            count: 0
-        }
-
         var d = new Date();
         const upcommingSessionlist = await SessionRequestSchema.aggregate([
             {
                 $match: { requeststatus: 1, userid: req.user._id, enddatetime: { $gte: d } }
             },
-            { $sort: { date: -1 } },
+            { $sort: { date: 1 } },
             { "$addFields": { "tId": { "$toObjectId": "$trainerid" }, "cId": { "$toObjectId": "$userid" } } },
             {
                 $lookup: {

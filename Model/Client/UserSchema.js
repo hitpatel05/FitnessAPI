@@ -1,4 +1,3 @@
-const { array } = require("@hapi/joi");
 const mongoose = require("mongoose");
 
 const schema = mongoose.Schema;
@@ -26,7 +25,7 @@ const userSchema = new schema({
     webnotifications: { type: Boolean },
     mobilenotifications: { type: Boolean },
     statusid: { type: Number, required: true, default: 1 },
-    bookmarktrainer: { type : [] },
+    bookmarktrainer: { type: [] },
     progressphotos: { type: [] },
     standersession: { type: Number },
     elitesession: { type: Number },

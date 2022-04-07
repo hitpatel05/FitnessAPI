@@ -29,11 +29,17 @@ const getworkoutcategory = async (req, res) => {
 
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
+        
+        var sortObject = {};
+        var sCol = req.body.sortedCol || "_id";
+        var sOrd = req.body.sortedOrder || 1;
+        sortObject[sCol] = sOrd;
+
         var resObj = {
             workoutcategory: [],
             noOfRecords: await WorkoutCategory.estimatedDocumentCount({ active: true })
         }
-        const adminlist = await WorkoutCategory.find({ active: true }).skip((pageNumber - 1) * limitValue).limit(limitValue);
+        const adminlist = await WorkoutCategory.find({ active: true }).sort(sortObject).skip((pageNumber - 1) * limitValue).limit(limitValue);
         if (adminlist) {
             resObj.workoutcategory = adminlist;
             return res.status(200).json({ status: 1, message: "Get Workout Categorysuccessfully.", result: resObj });
@@ -99,12 +105,18 @@ const getstaff = async (req, res) => {
             return res.status(200).json({ status: 2, message: "Please login to get admin." });
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
+
+        var sortObject = {};
+        var sCol = req.body.sortedCol || "_id";
+        var sOrd = req.body.sortedOrder || 1;
+        sortObject[sCol] = sOrd;
+
         var resObj = {
             stafflist: [],
             noOfRecords: await StaffSchema.estimatedDocumentCount()
         }
 
-        const stafflist = await StaffSchema.find({}).skip((pageNumber - 1) * limitValue).limit(limitValue);
+        const stafflist = await StaffSchema.find({}).sort(sortObject).skip((pageNumber - 1) * limitValue).limit(limitValue);
         if (stafflist) {
             resObj.stafflist = stafflist;
             return res.status(200).json({ status: 1, message: "Get Staff successfully.", result: resObj });
@@ -184,12 +196,18 @@ const getgoalstypes = async (req, res) => {
             return res.status(200).json({ status: 2, message: "Please login to get admin." });
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
+
+        var sortObject = {};
+        var sCol = req.body.sortedCol || "_id";
+        var sOrd = req.body.sortedOrder || 1;
+        sortObject[sCol] = sOrd;
+
         var resObj = {
             goalslist: [],
             noOfRecords: await GoalsSchema.estimatedDocumentCount()
         }
 
-        const goalslist = await GoalsSchema.find({}).skip((pageNumber - 1) * limitValue).limit(limitValue);
+        const goalslist = await GoalsSchema.find({}).sort(sortObject).skip((pageNumber - 1) * limitValue).limit(limitValue);
         if (goalslist) {
             resObj.goalslist = goalslist;
             return res.status(200).json({ status: 1, message: "Get Goals type successfully.", result: resObj });
@@ -256,12 +274,17 @@ const getequipments = async (req, res) => {
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
 
+        var sortObject = {};
+        var sCol = req.body.sortedCol || "_id";
+        var sOrd = req.body.sortedOrder || 1;
+        sortObject[sCol] = sOrd;
+
         var resObj = {
             goalslist: [],
             noOfRecords: await EquipmentSchema.estimatedDocumentCount()
         }
 
-        const goalslist = await EquipmentSchema.find({}).skip((pageNumber - 1) * limitValue).limit(limitValue);
+        const goalslist = await EquipmentSchema.find({}).sort(sortObject).skip((pageNumber - 1) * limitValue).limit(limitValue);
         if (goalslist) {
             resObj.goalslist = goalslist;
             return res.status(200).json({ status: 1, message: "Get Equipment successfully.", result: resObj });
@@ -329,11 +352,17 @@ const getplan = async (req, res) => {
 
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
+        
+        var sortObject = {};
+        var sCol = req.body.sortedCol || "_id";
+        var sOrd = req.body.sortedOrder || 1;
+        sortObject[sCol] = sOrd;
+
         var resObj = {
             planlist: [],
             noOfRecords: await PlanSchema.estimatedDocumentCount()
         }
-        const planlist = await PlanSchema.find({}).sort({ _id: 1 }).skip((pageNumber - 1) * limitValue).limit(limitValue);
+        const planlist = await PlanSchema.find({}).sort(sortObject).skip((pageNumber - 1) * limitValue).limit(limitValue);
         if (planlist) {
             resObj.planlist = planlist;
             return res.status(200).json({ status: 1, message: "Get Plan successfully.", result: resObj });
@@ -407,8 +436,14 @@ const ratinglist = async (req, res) => {
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
 
+        var sortObject = {};
+        var sCol = req.body.sortedCol || "_id";
+        var sOrd = req.body.sortedOrder || 1;
+        sortObject[sCol] = sOrd;
+
         const trainerlist = await ScheduleRequestSchema.aggregate([
             { $match: { sessionrating: { $exists: true, $not: { $size: 0 } } } },
+            { $sort: sortObject },
             { "$addFields": { "cId": { "$toObjectId": "$userid" } } },
             {
                 $lookup: {
@@ -470,9 +505,15 @@ const workoutlist = async (req, res) => {
 
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
+        
+        var sortObject = {};
+        var sCol = req.body.sortedCol || "_id";
+        var sOrd = req.body.sortedOrder || 1;
+        sortObject[sCol] = sOrd;
 
         const trainerlist = await ScheduleRequestSchema.aggregate([
             { $match: { sessionworkout: { $exists: true, $not: { $size: 0 } } } },
+            { $sort: sortObject },
             { "$addFields": { "cId": { "$toObjectId": "$userid" }, "tId": { "$toObjectId": "$trainerid" } } },
             {
                 $lookup: {
@@ -523,6 +564,12 @@ const trainerlist = async (req, res) => {
 
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
+
+        var sortObject = {};
+        var sCol = req.body.sortedCol || "firstname";
+        var sOrd = req.body.sortedOrder || 1;
+        sortObject[sCol] = sOrd;
+
         const rankinglist = await ScheduleRequestSchema.find({ sessionrating: { $exists: true, $not: { $size: 0 } } });
         var resObj = {
             trainerlist: [],
@@ -543,7 +590,7 @@ const trainerlist = async (req, res) => {
                 filterObj.typeOfWorkout = req.body.typeOfWorkout;
             if (req.body.gender && req.body.gender != '')
                 filterObj.gender = req.body.gender;
-            const trainerlist = await Users.find(filterObj).skip((pageNumber - 1) * limitValue).limit(limitValue);
+            const trainerlist = await Users.find(filterObj).sort(sortObject).skip((pageNumber - 1) * limitValue).limit(limitValue);
             if (trainerlist) {
                 resObj.trainerlist = trainerlist;
                 //resObj.noOfPage = CalcPagesCount(trainerlist.length,limitValue);
@@ -551,7 +598,7 @@ const trainerlist = async (req, res) => {
             }
         }
         else if (req.body.availablestatus === 0) {
-            const trainerlist = await Users.find({ statusid: 1 }).sort({ _id: 1 }).skip((pageNumber - 1) * limitValue).limit(limitValue);
+            const trainerlist = await Users.find({ statusid: 1 }).sort(sortObject).skip((pageNumber - 1) * limitValue).limit(limitValue);
             if (trainerlist) {
                 resObj.trainerlist = trainerlist;
                 //resObj.noOfPage = CalcPagesCount(trainerlist.length,limitValue);
@@ -560,7 +607,7 @@ const trainerlist = async (req, res) => {
             }
         }
         else if (req.body.availablestatus === -1 && req.body.id != null) {
-            const trainerlist = await Users.find({ statusid: 1, _id: req.body.id }).skip((pageNumber - 1) * limitValue).limit(limitValue);
+            const trainerlist = await Users.find({ statusid: 1, _id: req.body.id }).sort(sortObject).skip((pageNumber - 1) * limitValue).limit(limitValue);
             if (trainerlist) {
                 resObj.trainerlist = trainerlist;
                 //resObj.noOfPage = CalcPagesCount(trainerlist.length,limitValue);
@@ -568,7 +615,7 @@ const trainerlist = async (req, res) => {
             }
         }
         else {
-            const trainerlist = await Users.find({ statusid: 1, availablestatus: req.body.availablestatus }).skip((pageNumber - 1) * limitValue).limit(limitValue);
+            const trainerlist = await Users.find({ statusid: 1, availablestatus: req.body.availablestatus }).sort(sortObject).skip((pageNumber - 1) * limitValue).limit(limitValue);
             if (trainerlist) {
                 resObj.trainerlist = trainerlist;
                 //resObj.noOfPage = CalcPagesCount(trainerlist.length,limitValue);
@@ -590,11 +637,17 @@ const clientlist = async (req, res) => {
 
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
+
+        var sortObject = {};
+        var sCol = req.body.sortedCol || "firstname";
+        var sOrd = req.body.sortedOrder || 1;
+        sortObject[sCol] = sOrd;
+
         var resObj = {
             memberlist: [],
             noOfRecords: await Client.estimatedDocumentCount()
         }
-        const clientlist = await Client.find({ status: 1 }).skip((pageNumber - 1) * limitValue).limit(limitValue);
+        const clientlist = await Client.find({ status: 1 }).sort(sortObject).skip((pageNumber - 1) * limitValue).limit(limitValue);
         if (clientlist) {
             resObj.memberlist = clientlist;
             return res.status(200).json({ status: 1, message: "Get successfully.", result: resObj });
@@ -639,6 +692,12 @@ const notificationlist = async (req, res) => {
 
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
+
+        var sortObject = {};
+        var sCol = req.body.sortedCol || "date";
+        var sOrd = req.body.sortedOrder || 1;
+        sortObject[sCol] = sOrd;
+
         var resultObj = {
             list: [],
             count: 0
@@ -646,6 +705,7 @@ const notificationlist = async (req, res) => {
         if (req.user.role == "client") {
             const senderlist = await Notifications.aggregate([
                 { $match: { sentby: req.user._id } },
+                { $sort: sortObject },
                 { "$addFields": { "cId": { "$toObjectId": "$sentby" }, "tId": { "$toObjectId": "$sentto" } } },
                 {
                     $lookup: {
@@ -668,6 +728,7 @@ const notificationlist = async (req, res) => {
             ]);
             const receiverlist = await Notifications.aggregate([
                 { $match: { sentto: req.user._id } },
+                { $sort: sortObject },
                 { "$addFields": { "cId": { "$toObjectId": "$sentto" }, "tId": { "$toObjectId": "$sentby" } } },
                 {
                     $lookup: {
@@ -811,11 +872,17 @@ const settinglist = async (req, res) => {
 
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
+
+        var sortObject = {};
+        var sCol = req.body.sortedCol || "_id";
+        var sOrd = req.body.sortedOrder || 1;
+        sortObject[sCol] = sOrd;
+
         var resObj = {
             settinglist: [],
             noOfRecords: await Setting.estimatedDocumentCount()
         }
-        const settinglist = await Setting.find({}).sort({ _id: 1 }).skip((pageNumber - 1) * limitValue).limit(limitValue);
+        const settinglist = await Setting.find({}).sort(sortObject).skip((pageNumber - 1) * limitValue).limit(limitValue);
         if (settinglist) {
             resObj.settinglist = settinglist;
             return res.status(200).json({ status: 1, message: "Get Setting successfully.", result: resObj });
@@ -835,8 +902,14 @@ const trainerBookinglist = async (req, res) => {
 
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
-        console.log(req.user)
+        
+        var sortObject = {};
+        var sCol = req.body.sortedCol || "_id";
+        var sOrd = req.body.sortedOrder || 1;
+        sortObject[sCol] = sOrd;
+
         const trainerlist = await ScheduleRequestSchema.aggregate([
+            { $sort: sortObject },
             { "$addFields": { "cId": { "$toObjectId": "$userid" }, "tId": { "$toObjectId": "$trainerid" } } },
             {
                 $lookup: {
@@ -890,8 +963,14 @@ const clientBookinglist = async (req, res) => {
 
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
+        
+        var sortObject = {};
+        var sCol = req.body.sortedCol || "_id";
+        var sOrd = req.body.sortedOrder || 1;
+        sortObject[sCol] = sOrd;
 
         const clientlist = await ScheduleRequestSchema.aggregate([
+            { $sort: sortObject },
             { "$addFields": { "cId": { "$toObjectId": "$userid" }, "tId": { "$toObjectId": "$trainerid" } } },
             {
                 $lookup: {

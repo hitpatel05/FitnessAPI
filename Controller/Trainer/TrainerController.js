@@ -27,8 +27,120 @@ const trainer = async (req, res) => {
         if (!req.user.isAuthenticated)
             return res.status(200).json({ status: 2, message: "Please login to get trainer." });
 
+        // const limitValue = req.body.limitValue || 10;
+        // const pageNumber = req.body.pageNumber || 1;
+
         const clientlist = await Client.findById({ _id: req.user._id });
         const rankinglist = await ScheduleRequestSchema.find({ sessionrating: { $exists: true, $not: { $size: 0 } } });
+
+        // if (req.body.isfilter === true) {
+        //     console.log(req.body);
+        //     req.body.ratings = (req.body.ratings === '') ? 1 : req.body.ratings;
+        //     try {
+        //         var filter = { statusid: 1, availablestatus: req.body.availablestatus };
+        //         if (req.body.gender && req.body.gender != '')
+        //             filter.gender = req.body.gender;
+        //         if (req.body.type && req.body.type != '')
+        //             filter.type = req.body.type;
+
+        //         const Users1 = await Users.aggregate([
+        //             { $match: filter },
+        //             // JOIN WITH SESSIONREQUEST
+        //             { "$addFields": { "tId": { "$toString": "$_id" } } },
+        //             {
+        //                 $lookup: {
+        //                     from: "sessionrequests",
+        //                     localField: "tId",
+        //                     foreignField: "trainerid",
+        //                     //let: { trainerid: "$tId" },
+        //                     // pipeline: [{
+        //                     //     $match: {
+        //                     //         //$expr: { $eq: ["$$trainerid", "$trainerid"] },
+        //                     //         sessionrating: { $exists: true }
+        //                     //     }
+        //                     // }
+        //                     // ],
+        //                     as: "session_data",
+        //                 }
+        //             },
+        //             //{ $match: { "session_data.sessionrating": { $ne: {} } } },
+        //             //{ $match: { "session_data.sessionrating": { $ne: null } } },
+        //             // { $unwind: "$session_data.sessionrating" },
+        //             // {
+        //             //     $project: {
+        //             //         _id: 1, firstname: 1,
+        //             //         rate: {
+        //             //             $cond:
+        //             //                 [
+        //             //                     { $ifNull: ['$session_data.sessionrating', false] }, 0, "$session_data.sessionrating.rate"
+        //             //                     // if: { $eq: ["$session_data", false] },
+        //             //                     // then: 0,
+        //             //                     // else: "$session_data.sessionrating.rate"
+        //             //                 ]
+        //             //         }
+        //             //     }
+        //             // },
+        //             { $unwind: { path: "$session_data.sessionrating", preserveNullAndEmptyArrays: true } },
+        //             {
+        //                 $project: {
+        //                     averageRating: {
+        //                         $cond: {
+        //                             if: { $eq: [{ $divide: [{ $avg: "$session_data.sessionrating.rate" }, 20] }, null] },
+        //                             then: 0,
+        //                             else: { $divide: [{ $avg: "$session_data.sessionrating.rate" }, 20] }
+        //                         }
+        //                     },
+        //                     _id: 1,
+        //                     firstname: 1,
+        //                     lastname: 1,
+        //                     profile: 1,
+        //                     trainingstyle: 1,
+        //                     availablestatus: 1,
+        //                     type: 1
+        //                 },
+        //             },
+        //             {
+        //                 $sort: { averageRating: parseInt(req.body.ratings) }
+        //             },
+        //             // {
+        //             //     $group: {
+        //             //         _id: '$tId', "firstname": { "$first": "$firstname" }, avg: {
+        //             //             $avg: {
+        //             //                 $cond:
+        //             //                     [
+        //             //                         { $ifNull: ['$session_data.sessionrating.rate', true] }, 0, "$session_data.sessionrating.rate"
+        //             //                     ]
+        //             //                 // {
+        //             //                 //     if: { $eq: ["$session_data", false] },
+        //             //                 //     then: 0,
+        //             //                 //     else: "$session_data.sessionrating.rate"
+        //             //                 // }
+        //             //             }
+        //             //         }
+        //             //     }
+        //             // },
+        //             {
+        //                 $facet: {
+        //                     paginatedResults: [
+        //                         { $skip: (pageNumber - 1) * limitValue },
+        //                         { $limit: limitValue },
+        //                     ],
+        //                     totalCount: [
+        //                         {
+        //                             $count: 'count'
+        //                         }
+        //                     ]
+        //                 }
+        //             }
+        //         ]);
+
+        //         console.log("Users1 Data:", JSON.stringify(Users1));
+        //     }
+        //     catch (err) {
+        //         console.log("Users1 Error", err);
+        //     }
+        // }
+
         var resObj = {
             trainerlist: [],
             client_data: clientlist,
@@ -49,7 +161,6 @@ const trainer = async (req, res) => {
                 filterObj.typeOfWorkout = req.body.typeOfWorkout;
             if (req.body.gender && req.body.gender != '')
                 filterObj.gender = req.body.gender;
-            console.log(filterObj);
             const trainerlist = await Users.find(filterObj);
             if (trainerlist) {
                 resObj.trainerlist = trainerlist;
@@ -57,7 +168,7 @@ const trainer = async (req, res) => {
             }
         }
         else if (req.body.availablestatus === 0) {
-            const trainerlist = await Users.find({ statusid: 1, availablestatus:req.body.availablestatus   });
+            const trainerlist = await Users.find({ statusid: 1, availablestatus: req.body.availablestatus });
             if (trainerlist) {
                 resObj.trainerlist = trainerlist;
                 return res.status(200).json({ status: 1, message: "Get successfully.", result: resObj });
@@ -69,7 +180,7 @@ const trainer = async (req, res) => {
                 resObj.trainerlist = trainerlist;
                 return res.status(200).json({ status: 1, message: "Get successfully.", result: resObj });
             }
-        }     
+        }
         else {
             const trainerlist = await Users.find({ statusid: 1, availablestatus: req.body.availablestatus });
             if (trainerlist) {
@@ -84,6 +195,7 @@ const trainer = async (req, res) => {
         return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
     }
 };
+
 const savetrainerlist = async (req, res) => {
     try {
         if (!req.user.isAuthenticated)
@@ -115,6 +227,7 @@ const savetrainerlist = async (req, res) => {
         return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
     }
 };
+
 const savetrainer = async (req, res) => {
     console.log(req.body);
     try {
@@ -143,6 +256,7 @@ const savetrainer = async (req, res) => {
         return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
     }
 };
+
 const searchtrainer = async (req, res) => {
     try {
         //console.log('Controller');
@@ -179,7 +293,21 @@ const trainerdetails = async (req, res) => {
             return res.status(200).json({ status: 2, message: "Please login to get trainer." });
 
         const clientlist = await Client.findById({ _id: req.user._id });
-        const sessionRequestlist = await ScheduleRequestSchema.find({ requeststatus: 1, userid: req.user._id }).sort({ _id: -1});
+        const sessionRequestlist = await ScheduleRequestSchema.aggregate([
+            { $match: { requeststatus: 1, userid: req.user._id } },
+            { $sort: { _id: -1 } },
+            { "$addFields": { "tId": { "$toObjectId": "$trainerid" } } },
+            {
+                $lookup: {
+                    from: "trainerusers",
+                    localField: "tId",
+                    foreignField: "_id",
+                    as: "trainer_data"
+                }
+            },
+            { $unwind: "$trainer_data" }
+        ]);
+
         var resObj = {
             trainerlist: [],
             sessionrequestlist: sessionRequestlist,
@@ -213,6 +341,7 @@ const trainerdetails = async (req, res) => {
         return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
     }
 };
+
 const trainerrating = async (req, res) => {
     try {
         if (!req.user.isAuthenticated)
@@ -243,6 +372,7 @@ const trainerrating = async (req, res) => {
         return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
     }
 }
+
 const getworkoutcategory = async (req, res) => {
     try {
         if (!req.user.isAuthenticated)
@@ -259,4 +389,5 @@ const getworkoutcategory = async (req, res) => {
         return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
     }
 };
-module.exports = { trainer, savetrainerlist, deletetrainer, searchtrainer, savetrainer, trainerrating, trainerdetails ,getworkoutcategory};
+
+module.exports = { trainer, savetrainerlist, deletetrainer, searchtrainer, savetrainer, trainerrating, trainerdetails, getworkoutcategory };
