@@ -202,17 +202,16 @@ const register = async (req, res) => {
 const updateTrainerPara = async (req, res) => {
     try {
         console.log(req.body)
-        errorLog("Q - Body", req.body, "Body Object body");
-        errorLog("Q - files", req.files, "File Object file");
         var qualificationsObj = (req.body.qualifications != "") ? JSON.parse(req.body.qualifications) : null;
         var certificationsObj = (req.body.certifications != "") ? JSON.parse(req.body.certifications) : null;
-        errorLog("JSON CONVERT", null, "Object file");
         if (req.files) {
             if (req.body.qualifications != "" && qualificationsObj) {
                 var Qimgllist = [];
                 if (qualificationsObj.path) {
                     qualificationsObj.path.forEach(element => {
                         var qfilename = "";
+                        errorLog("JSON CONVERT", req.files[0], "First Object file");
+
                         if (element.name == req.files[element.name].name) {
                             const file = req.files[element.name];
                             console.log(file.name)
