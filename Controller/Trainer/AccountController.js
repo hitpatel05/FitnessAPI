@@ -202,10 +202,8 @@ const register = async (req, res) => {
 const updateTrainerPara = async (req, res) => {
     try {
         console.log(req.body)
-        errorLog("Q - files", req.body, "Object body");
-        console.log("Q - files")
-        console.log(req.files)
-        errorLog("Q - files", req.files, "Object file");
+        errorLog("Q - Body", req.body, "Body Object body");
+        errorLog("Q - files", req.files, "File Object file");
         var qualificationsObj = (req.body.qualifications != "") ? JSON.parse(req.body.qualifications) : null;
         var certificationsObj = (req.body.certifications != "") ? JSON.parse(req.body.certifications) : null;
         errorLog("JSON CONVERT", null, "Object file");
@@ -230,6 +228,21 @@ const updateTrainerPara = async (req, res) => {
                             qfilename = "/public/trainerqualifications/" + `qualification_${Date.now()}${extensionName}`;
 
                             file.mv("." + qfilename);
+                        } else if (element.fpath == req.files[element.path].uri) {
+                            const file = req.files[element.path];
+                            console.log(element.name)
+                            const extensionName = path.extname(element.name); // fetch the file extension
+                            const allowedExtension = ['.png', '.jpg', '.jpeg'];
+
+                            if (!allowedExtension.includes(extensionName))
+                                return res.status(422).json({ status: 2, message: "Only .png, .jpg and .jpeg format allowed." });
+
+                            if (file.size > (1024 * 1024 * 1))
+                                return res.status(422).json({ status: 2, message: "File size is more than 1 MB." });
+
+                            qfilename = "/public/trainerqualifications/" + `qualification_${Date.now()}${extensionName}`;
+
+                            file.mv("." + qfilename);
                         }
                         Qimgllist.push({
                             "uri": qfilename,
@@ -263,68 +276,9 @@ const updateTrainerPara = async (req, res) => {
                             cfilename = "/public/trainercertifications/" + `certification_${Date.now()}${extensionName}`;
 
                             file.mv("." + cfilename);
-                        }
-                        Cimgllist.push({
-                            "uri": cfilename,
-                            "name": element.name,
-                            "type": element.type
-                        })
-                    });
-                }
-                var certifi = {
-                    "name": (certificationsObj) ? certificationsObj.name : "",
-                    "path": Cimgllist
-                }
-            }
-        } else {
-            errorLog("Q NOT- files", req.files, "Object file");
-            errorLog("Q NOT- files", qualificationsObj, "qualificationsObj file");
-            if (req.body.qualifications != "" && qualificationsObj) {
-                var Qimgllist = [];
-                //errorLog("Q NOT- files", JSON.parse(qualificationsObj), "qualificationsObj JSON file");
-                if (qualificationsObj.path) {
-                    errorLog("Add Qo bject", qualificationsObj, "Object file");
-                    qualificationsObj.path.forEach(element => {
-                        var qfilename = "";
-                        errorLog("Add loop bject", element.uri, "Object file");
-                        if (element.uri) {
-                            const file = element.uri;
+                        } else if (element.fpath == req.files[element.path].uri) {
+                            const file = req.files[element.path];
                             console.log(element.name)
-                            errorLog("Add loop name", element.name, "Object file");
-                            const extensionName = path.extname(element.name); // fetch the file extension
-                            const allowedExtension = ['.png', '.jpg', '.jpeg'];
-
-                            if (!allowedExtension.includes(extensionName))
-                                return res.status(422).json({ status: 2, message: "Only .png, .jpg and .jpeg format allowed." });
-
-                            if (file.size > (1024 * 1024 * 1))
-                                return res.status(422).json({ status: 2, message: "File size is more than 1 MB." });
-
-                            qfilename = "/public/trainerqualifications/" + `qualification_${Date.now()}${extensionName}`;
-
-                            file.mv("." + qfilename);
-                        }
-                        Qimgllist.push({
-                            "uri": qfilename,
-                            "name": element.name,
-                            "type": element.uri[0].mime
-                        })
-                    });
-                }
-                var qualifi = {
-                    "name": (qualificationsObj) ? qualificationsObj.name : "",
-                    "path": Qimgllist
-                }
-            }
-            if (req.body.certifications != "" && certificationsObj) {
-                var Cimgllist = [];
-                if (certificationsObj.path) {
-                    certificationsObj.path.forEach(element => {
-                        var cfilename = "";
-                        if (element.uri) {
-                            const file = element.uri;
-                            console.log(element.name)
-                            errorLog("Add loop name", element.name, "Object file");
                             const extensionName = path.extname(element.name); // fetch the file extension
                             const allowedExtension = ['.png', '.jpg', '.jpeg'];
 
@@ -341,7 +295,7 @@ const updateTrainerPara = async (req, res) => {
                         Cimgllist.push({
                             "uri": cfilename,
                             "name": element.name,
-                            "type": element.uri[0].mime
+                            "type": element.type
                         })
                     });
                 }
@@ -350,7 +304,82 @@ const updateTrainerPara = async (req, res) => {
                     "path": Cimgllist
                 }
             }
-        }
+        } 
+        // else {
+        //     errorLog("Q NOT- files", req.files, "Object file");
+        //     errorLog("Q NOT- files", qualificationsObj, "qualificationsObj file");
+        //     if (req.body.qualifications != "" && qualificationsObj) {
+        //         var Qimgllist = [];
+        //         //errorLog("Q NOT- files", JSON.parse(qualificationsObj), "qualificationsObj JSON file");
+        //         if (qualificationsObj.path) {
+        //             errorLog("Add Qo bject", qualificationsObj, "Object file");
+        //             qualificationsObj.path.forEach(element => {
+        //                 var qfilename = "";
+        //                 errorLog("Add loop bject", element.uri, "Object file");
+        //                 if (element.uri) {
+        //                     const file = element.uri;
+        //                     console.log(element.name)
+        //                     errorLog("Add loop name", element.name, "Object file");
+        //                     const extensionName = path.extname(element.name); // fetch the file extension
+        //                     const allowedExtension = ['.png', '.jpg', '.jpeg'];
+
+        //                     if (!allowedExtension.includes(extensionName))
+        //                         return res.status(422).json({ status: 2, message: "Only .png, .jpg and .jpeg format allowed." });
+
+        //                     if (file.size > (1024 * 1024 * 1))
+        //                         return res.status(422).json({ status: 2, message: "File size is more than 1 MB." });
+
+        //                     qfilename = "/public/trainerqualifications/" + `qualification_${Date.now()}${extensionName}`;
+
+        //                     file.mv("." + qfilename);
+        //                 }
+        //                 Qimgllist.push({
+        //                     "uri": qfilename,
+        //                     "name": element.name,
+        //                     "type": element.uri[0].mime
+        //                 })
+        //             });
+        //         }
+        //         var qualifi = {
+        //             "name": (qualificationsObj) ? qualificationsObj.name : "",
+        //             "path": Qimgllist
+        //         }
+        //     }
+        //     if (req.body.certifications != "" && certificationsObj) {
+        //         var Cimgllist = [];
+        //         if (certificationsObj.path) {
+        //             certificationsObj.path.forEach(element => {
+        //                 var cfilename = "";
+        //                 if (element.uri) {
+        //                     const file = element.uri;
+        //                     console.log(element.name)
+        //                     errorLog("Add loop name", element.name, "Object file");
+        //                     const extensionName = path.extname(element.name); // fetch the file extension
+        //                     const allowedExtension = ['.png', '.jpg', '.jpeg'];
+
+        //                     if (!allowedExtension.includes(extensionName))
+        //                         return res.status(422).json({ status: 2, message: "Only .png, .jpg and .jpeg format allowed." });
+
+        //                     if (file.size > (1024 * 1024 * 1))
+        //                         return res.status(422).json({ status: 2, message: "File size is more than 1 MB." });
+
+        //                     cfilename = "/public/trainercertifications/" + `certification_${Date.now()}${extensionName}`;
+
+        //                     file.mv("." + cfilename);
+        //                 }
+        //                 Cimgllist.push({
+        //                     "uri": cfilename,
+        //                     "name": element.name,
+        //                     "type": element.uri[0].mime
+        //                 })
+        //             });
+        //         }
+        //         var certifi = {
+        //             "name": (certificationsObj) ? certificationsObj.name : "",
+        //             "path": Cimgllist
+        //         }
+        //     }
+        // }
         errorLog("BEFORE JSON CONVERT", null, "Object file");
         console.log(qualifi)
         errorLog("Q - AFTER JSON CONVERT", qualifi, "Object file");
