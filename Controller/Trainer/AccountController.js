@@ -281,6 +281,7 @@ const updateTrainerPara = async (req, res) => {
             errorLog("Q NOT- files", qualificationsObj, "qualificationsObj file");
             if (req.body.qualifications != "" && qualificationsObj) {
                 var Qimgllist = [];
+                errorLog("Q NOT- files", JSON.parse(qualificationsObj), "qualificationsObj JSON file");
                 if (qualificationsObj.path) {
                     qualificationsObj.path.forEach(element => {
                         var qfilename = "";
