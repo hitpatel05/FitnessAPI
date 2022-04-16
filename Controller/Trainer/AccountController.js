@@ -307,7 +307,7 @@ const updateTrainerPara = async (req, res) => {
                         Qimgllist.push({
                             "uri": qfilename,
                             "name": element.name,
-                            "type": element.type
+                            "type": element.uri[0].mime
                         })
                     });
                 }
@@ -323,8 +323,9 @@ const updateTrainerPara = async (req, res) => {
                         var cfilename = "";
                         if (element.uri) {
                             const file = element.uri;
-                            console.log(file.name)
-                            const extensionName = path.extname(file.name); // fetch the file extension
+                            console.log(element.name)
+                            errorLog("Add loop name", element.name, "Object file");
+                            const extensionName = path.extname(element.name); // fetch the file extension
                             const allowedExtension = ['.png', '.jpg', '.jpeg'];
 
                             if (!allowedExtension.includes(extensionName))
@@ -340,7 +341,7 @@ const updateTrainerPara = async (req, res) => {
                         Cimgllist.push({
                             "uri": cfilename,
                             "name": element.name,
-                            "type": element.type
+                            "type": element.uri[0].mime
                         })
                     });
                 }
