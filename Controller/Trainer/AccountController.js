@@ -286,11 +286,12 @@ const updateTrainerPara = async (req, res) => {
                     errorLog("Add Qo bject", qualificationsObj, "Object file");
                     qualificationsObj.path.forEach(element => {
                         var qfilename = "";
-                        errorLog("Add loop bject", element, "Object file");
+                        errorLog("Add loop bject", element.uri, "Object file");
                         if (element.uri) {
                             const file = element.uri;
-                            console.log(file.name)
-                            const extensionName = path.extname(file.name); // fetch the file extension
+                            console.log(element.name)
+                            errorLog("Add loop name", element.name, "Object file");
+                            const extensionName = path.extname(element.name); // fetch the file extension
                             const allowedExtension = ['.png', '.jpg', '.jpeg'];
 
                             if (!allowedExtension.includes(extensionName))
