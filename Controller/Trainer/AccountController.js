@@ -286,6 +286,7 @@ const updateTrainerPara = async (req, res) => {
                     errorLog("Add Qo bject", qualificationsObj, "Object file");
                     qualificationsObj.path.forEach(element => {
                         var qfilename = "";
+                        errorLog("Add loop bject", element, "Object file");
                         if (element.uri) {
                             const file = element.uri;
                             console.log(file.name)
