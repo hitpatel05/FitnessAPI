@@ -206,7 +206,6 @@ const updateTrainerPara = async (req, res) => {
         console.log("Q - files")
         console.log(req.files)
         errorLog("Q - files", req.files, "Object file");
-        errorLog("Q - files", JSON.stringify(req.files), "JSON Object file");
         var qualificationsObj = (req.body.qualifications != "") ? JSON.parse(req.body.qualifications) : null;
         var certificationsObj = (req.body.certifications != "") ? JSON.parse(req.body.certifications) : null;
         errorLog("JSON CONVERT", null, "Object file");
@@ -278,6 +277,8 @@ const updateTrainerPara = async (req, res) => {
                 }
             }
         } else {
+            errorLog("Q NOT- files", req.files, "Object file");
+            errorLog("Q NOT- files", qualificationsObj, "qualificationsObj file");
             if (req.body.qualifications != "" && qualificationsObj) {
                 var Qimgllist = [];
                 if (qualificationsObj.path) {
