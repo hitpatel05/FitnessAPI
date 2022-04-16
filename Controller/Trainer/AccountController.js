@@ -209,6 +209,7 @@ const updateTrainerPara = async (req, res) => {
         errorLog("Q - files", JSON.stringify(req.files), "JSON Object file");
         var qualificationsObj = (req.body.qualifications != "") ? JSON.parse(req.body.qualifications) : null;
         var certificationsObj = (req.body.certifications != "") ? JSON.parse(req.body.certifications) : null;
+        errorLog("JSON CONVERT", null, "Object file");
         if (req.files) {
             if(req.body.qualifications != "" && qualificationsObj){
                 var Qimgllist = [];
@@ -277,8 +278,11 @@ const updateTrainerPara = async (req, res) => {
                 }
             }
         }
+        errorLog("BEFORE JSON CONVERT", null, "Object file");
         console.log(qualifi)
+        errorLog("Q - AFTER JSON CONVERT", qualifi, "Object file");
         console.log(certifi)
+        errorLog("C - AFTER JSON CONVERT", certifi, "Object file");
         const userdata = await Users.findOne({ _id: req.body.id });
         if (userdata) {
             if(req.body.qualifications != ""){
