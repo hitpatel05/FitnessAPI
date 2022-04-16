@@ -202,7 +202,8 @@ const register = async (req, res) => {
 const updateTrainerPara = async (req, res) => {
     try {
         console.log(req.body)
-
+        console.log("Q - files")
+        console.log(req.files)
         var qualificationsObj = (req.body.qualifications != "") ? JSON.parse(req.body.qualifications) : null;
         var certificationsObj = (req.body.certifications != "") ? JSON.parse(req.body.certifications) : null;
         if (req.files) {

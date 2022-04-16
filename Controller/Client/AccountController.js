@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const fs = require("fs");
 const Cryptr = require("cryptr");
 const path = require("path");
-
+const mongoose = require('mongoose');
 const Users = require("../../Model/Client/UserSchema");
 const { SendMailHtml } = require("../EmailController");
 const { errorLog } = require("../Errorcontroller");
@@ -278,6 +278,71 @@ const updateprofile = async (req, res) => {
     }
 };
 
+const updateNotification = async (req, res) => {
+    try {
+        if (!req.user.isAuthenticated)
+            return res.status(200).json({ status: 2, message: "User not logged." });
+
+        const updateNotificationInput = await Users.findOne({ _id: mongoose.Types.ObjectId(req.user._id) });
+        if (updateNotificationInput) {
+            updateNotificationInput.notification = req.body.notification;
+            updateNotificationInput.save();
+
+            // const userdata = await Users.findOne({ _id: mongoose.Types.ObjectId(scheduleRequestInput.userid) });
+            // const trainerdata = await Trainers.findOne({ _id: mongoose.Types.ObjectId(scheduleRequestInput.trainerid) });
+            // // Client SMS Code
+            // if (req.body.status != 1) {
+            //     let msg = userdata.firstname + " your session request is reject by " + trainerdata.firstname + "."
+            //     var jsonData = {
+            //         date: new Date(),
+            //         title: "Reject session request",
+            //         description: msg,
+            //         type: req.user,
+            //         sentby: req.user._id || "-",
+            //         sentto: userdata._id || "-",
+            //     };
+            //     var obj = {
+            //         number: userdata.phoneno,
+            //         body: (msg || ""),
+            //         data: jsonData
+            //     }
+            //     let smsresult = SendTextMessage(obj);
+            // }
+            var notif = updateNotificationInput.notification
+            // var notif = {};
+            // const updateNotification = await Users.findOne({ _id: mongoose.Types.ObjectId(req.user._id) });
+            // if (updateNotification) {
+            //      notif = (updateNotification.notification == undefined || updateNotification.notification == null) ? {} : updateNotification.notification;
+            // }
+            return res.status(200).json({ status: 1, message: "Update notification  successfully.", result: notif });
+        }
+        return res.status(200).json({ status: 2, message: "User not found." });
+    }
+    catch (err) {
+        console.log(err)
+        errorLog("updateNotification", req.body, err);
+        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
+    }
+};
+
+const getNotification = async (req, res) => {
+    try {
+        if (!req.user.isAuthenticated)
+            return res.status(200).json({ status: 2, message: "User not logged." });
+
+        const updateNotificationInput = await Users.findOne({ _id: mongoose.Types.ObjectId(req.user._id) });
+        if (updateNotificationInput) {
+            const notif = (updateNotificationInput.notification == undefined || updateNotificationInput.notification == null) ? {} : updateNotificationInput.notification;
+            return res.status(200).json({ status: 1, message: "get notification  successfully.", result: notif });
+        }
+        return res.status(200).json({ status: 2, message: "User not found." });
+    }
+    catch (err) {
+        errorLog("getNotification", req.body, err);
+        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
+    }
+};
+
 const forgotpassword = async (req, res) => {
     try {
         if (req.user.isAuthenticated)
@@ -349,7 +414,7 @@ const saveprogressphotos = async (req, res) => {
             return res.status(200).json({ status: 2, message: "User not logged." });
 
         //var progressphotosObj = JSON.parse(req.body.progressphotos)
-        var nooffiles  = JSON.parse(req.body.filelist) || [];
+        var nooffiles = JSON.parse(req.body.filelist) || [];
         var filist = [];
         var imgllist = [];
         console.log(req.body.filelist)
@@ -418,6 +483,8 @@ module.exports = {
     getprofile,
     getprofilebyid,
     updateprofile,
+    getNotification,
+    updateNotification,
     forgotpassword,
     resetpassword,
     getprogressphotos,

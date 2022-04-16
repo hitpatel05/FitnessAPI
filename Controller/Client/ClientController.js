@@ -190,6 +190,7 @@ const bookmarktrainer = async (req, res) => {
                     date: new Date(),
                     title: "Trainer favourite",
                     description: msg,
+                    type: req.user,
                     sentby: req.user._id || "-",
                     sentto: TrainersDB._id || "-"
                 };

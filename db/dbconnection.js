@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
-//const DB = process.env.DATABASE;
 
+//const DB = process.env.DATABASE;
 
 mongoose.connect("mongodb://KNKTfitness:yTSHvgcE5fs80@54.201.160.69:58173/KNKTfitness?retryWrites=true&w=majority", {
     useNewUrlParser: true,

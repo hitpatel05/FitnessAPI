@@ -13,6 +13,8 @@ AccountRoute.post("/login", JWTAuth, LoginValidator, AccountController.login);
 AccountRoute.get("/getprofile", JWTAuth, AccountController.getprofile);
 AccountRoute.post("/getprofilebyid", JWTAuth, AccountController.getprofilebyid);
 AccountRoute.post("/updateprofile", JWTAuth, UpdateProfileValidator, AccountController.updateprofile);
+AccountRoute.get("/getNotification", JWTAuth, AccountController.getNotification);
+AccountRoute.post("/updateNotification", JWTAuth, AccountController.updateNotification);
 AccountRoute.post("/passwordlink", JWTAuth, AccountController.forgotpassword);
 AccountRoute.post("/resetpassword/:encryptedstr", ResetPasswordValidator, AccountController.resetpassword);
 AccountRoute.get("/getprogressphotos", JWTAuth, AccountController.getprogressphotos);

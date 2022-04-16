@@ -83,6 +83,7 @@ const savepayment = async (req, res) => {
                         date:  new Date(),
                         title: "Purchase session",
                         description: msg,
+                        type: req.user,
                         sentby: req.user._id  || "-",
                         sentto: req.user._id  || "-"
                     }

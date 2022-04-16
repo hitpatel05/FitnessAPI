@@ -73,7 +73,8 @@ const schema = {
         starthour: Joi.string().required(),
         endhour: Joi.string().required(),
         startdatetime: Joi.date(),
-        enddatetime: Joi.date()
+        enddatetime: Joi.date(),
+        requestType: Joi.number().optional()
     })
 };
 

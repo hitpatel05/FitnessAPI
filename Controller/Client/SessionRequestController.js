@@ -19,6 +19,7 @@ const SessionRequest = async (req, res) => {
             startdatetime: req.body.startdatetime,
             enddatetime: req.body.enddatetime,
             requeststatus: 0,
+            requestType: req.body.requestType,
             reason: ""
         };
         //const userdata = await Users.findOne({ _id:  mongoose.Types.ObjectId(sessionrequestInput.userid) });
@@ -35,6 +36,7 @@ const SessionRequest = async (req, res) => {
                     date: new Date(),
                     title: "Session request By Sender",
                     description: msg,
+                    type: req.user,
                     sentby: req.user._id || "-",
                     sentto: userdata._id || "-",
                 };
@@ -50,6 +52,7 @@ const SessionRequest = async (req, res) => {
                     date: new Date(),
                     title: "Session request To receiver",
                     description: msg1,
+                    type: req.user,
                     sentby: req.user._id || "-",
                     sentto: trainerdata._id || "-",
                 };

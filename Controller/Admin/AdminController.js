@@ -19,7 +19,8 @@ const Client = require("../../Model/Client/UserSchema");
 const Users = require("../../Model/Trainer/UserSchema");
 const Notifications = require("../../Model/Admin/NotificationSchema");
 const Setting = require("../../Model/Admin/SettingSchema");
-
+const Movement = require("../../Model/Admin/MovementSchema");
+const Country = require("../../Model/Admin/CountrySchema");
 
 const mongoose = require('mongoose');
 const getworkoutcategory = async (req, res) => {
@@ -29,7 +30,7 @@ const getworkoutcategory = async (req, res) => {
 
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
-        
+
         var sortObject = {};
         var sCol = req.body.sortedCol || "_id";
         var sOrd = req.body.sortedOrder || 1;
@@ -352,7 +353,7 @@ const getplan = async (req, res) => {
 
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
-        
+
         var sortObject = {};
         var sCol = req.body.sortedCol || "_id";
         var sOrd = req.body.sortedOrder || 1;
@@ -505,7 +506,7 @@ const workoutlist = async (req, res) => {
 
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
-        
+
         var sortObject = {};
         var sCol = req.body.sortedCol || "_id";
         var sOrd = req.body.sortedOrder || 1;
@@ -513,7 +514,6 @@ const workoutlist = async (req, res) => {
 
         const trainerlist = await ScheduleRequestSchema.aggregate([
             { $match: { sessionworkout: { $exists: true, $not: { $size: 0 } } } },
-            { $sort: sortObject },
             { "$addFields": { "cId": { "$toObjectId": "$userid" }, "tId": { "$toObjectId": "$trainerid" } } },
             {
                 $lookup: {
@@ -533,6 +533,7 @@ const workoutlist = async (req, res) => {
                 }
             },
             { $unwind: "$trainer_data" },
+            { $sort: sortObject },
             {
                 $facet: {
                     paginatedResults: [
@@ -697,119 +698,156 @@ const notificationlist = async (req, res) => {
         var sCol = req.body.sortedCol || "date";
         var sOrd = req.body.sortedOrder || 1;
         sortObject[sCol] = sOrd;
+        console.log(sortObject)
 
         var resultObj = {
             list: [],
             count: 0
         }
-        if (req.user.role == "client") {
-            const senderlist = await Notifications.aggregate([
-                { $match: { sentby: req.user._id } },
-                { $sort: sortObject },
-                { "$addFields": { "cId": { "$toObjectId": "$sentby" }, "tId": { "$toObjectId": "$sentto" } } },
-                {
-                    $lookup: {
-                        from: "clientusers",
-                        localField: "cId",
-                        foreignField: "_id",
-                        as: "client_data"
-                    }
-                },
-                { $unwind: "$client_data" },
-                {
-                    $lookup: {
-                        from: "trainerusers",
-                        localField: "tId",
-                        foreignField: "_id",
-                        as: "trainer_data"
-                    }
-                },
-                { $unwind: "$trainer_data" }
-            ]);
-            const receiverlist = await Notifications.aggregate([
-                { $match: { sentto: req.user._id } },
-                { $sort: sortObject },
-                { "$addFields": { "cId": { "$toObjectId": "$sentto" }, "tId": { "$toObjectId": "$sentby" } } },
-                {
-                    $lookup: {
-                        from: "clientusers",
-                        localField: "cId",
-                        foreignField: "_id",
-                        as: "client_data"
-                    }
-                },
-                { $unwind: "$client_data" },
-                {
-                    $lookup: {
-                        from: "trainerusers",
-                        localField: "tId",
-                        foreignField: "_id",
-                        as: "trainer_data"
-                    }
-                },
-                { $unwind: "$trainer_data" }
-            ]);
-            var lst = senderlist.concat(receiverlist);
-            resultObj.list = lst.slice(((pageNumber - 1) * limitValue), (((pageNumber - 1) * limitValue) + limitValue));
-            resultObj.count = lst.length || 0;
-            if (resultObj) {
-                return res.status(200).json({ status: 1, message: "Get Video sessions list successfully.", result: resultObj });
-            }
+        const clientlst = await Notifications.aggregate([
+            { "$addFields": { "cId": { "$toObjectId": "$sentto" } } },
+            {
+                $lookup: {
+                    from: "clientusers",
+                    localField: "cId",
+                    foreignField: "_id",
+                    as: "user_data"
+                }
+            },
+            { $unwind: "$user_data" },
+            { $sort: sortObject },
+        ]);
+        const trainerlst = await Notifications.aggregate([
+            { "$addFields": { "tId": { "$toObjectId": "$sentto" } } },
+            {
+                $lookup: {
+                    from: "trainerusers",
+                    localField: "tId",
+                    foreignField: "_id",
+                    as: "user_data"
+                }
+            },
+            { $unwind: "$user_data" },
+            { $sort: sortObject },
+        ]);
+        var lst = clientlst.concat(trainerlst);
+        resultObj.list = lst.slice(((pageNumber - 1) * limitValue), (((pageNumber - 1) * limitValue) + limitValue));
+        resultObj.count = lst.length || 0;
+        console.log(resultObj)
+        if (lst) {
+            return res.status(200).json({ status: 1, message: "Get notification successfully.", result: resultObj });
         }
-        else {
-            const senderlist = await Notifications.aggregate([
-                { $match: { sentby: req.user._id } },
-                { "$addFields": { "cId": { "$toObjectId": "$sentto" }, "tId": { "$toObjectId": "$sentby" } } },
-                {
-                    $lookup: {
-                        from: "clientusers",
-                        localField: "cId",
-                        foreignField: "_id",
-                        as: "client_data"
-                    }
-                },
-                { $unwind: "$client_data" },
-                {
-                    $lookup: {
-                        from: "trainerusers",
-                        localField: "tId",
-                        foreignField: "_id",
-                        as: "trainer_data"
-                    }
-                },
-                { $unwind: "$trainer_data" }
-            ]);
-            const receiverlist = await Notifications.aggregate([
-                { $match: { sentto: req.user._id } },
-                { "$addFields": { "cId": { "$toObjectId": "$sentby" }, "tId": { "$toObjectId": "$sentto" } } },
-                {
-                    $lookup: {
-                        from: "clientusers",
-                        localField: "cId",
-                        foreignField: "_id",
-                        as: "client_data"
-                    }
-                },
-                { $unwind: "$client_data" },
-                {
-                    $lookup: {
-                        from: "trainerusers",
-                        localField: "tId",
-                        foreignField: "_id",
-                        as: "trainer_data"
-                    }
-                },
-                { $unwind: "$trainer_data" }
-            ]);
-            var lst = senderlist.concat(receiverlist);
-            resultObj.list = lst.slice(((pageNumber - 1) * limitValue), (((pageNumber - 1) * limitValue) + limitValue));
-            resultObj.count = lst.length || 0;
-            if (resultObj) {
-                return res.status(200).json({ status: 1, message: "Get Video sessions list successfully.", result: resultObj });
-            }
-        }
+        // if (req.user.role == "client") {
+        //     const senderlist = await Notifications.aggregate([
+        //         { $match: { sentby: req.user._id } },
+        //         { $sort: sortObject },
+        //         { "$addFields": { "cId": { "$toObjectId": "$sentby" }, "tId": { "$toObjectId": "$sentto" } } },
+        //         {
+        //             $lookup: {
+        //                 from: "clientusers",
+        //                 localField: "cId",
+        //                 foreignField: "_id",
+        //                 as: "client_data"
+        //             }
+        //         },
+        //         { $unwind: "$client_data" },
+        //         {
+        //             $lookup: {
+        //                 from: "trainerusers",
+        //                 localField: "tId",
+        //                 foreignField: "_id",
+        //                 as: "trainer_data"
+        //             }
+        //         },
+        //         { $unwind: "$trainer_data" }
+        //     ]);
+        //     const receiverlist = await Notifications.aggregate([
+        //         { $match: { sentto: req.user._id } },
+        //         { $sort: sortObject },
+        //         { "$addFields": { "cId": { "$toObjectId": "$sentto" }, "tId": { "$toObjectId": "$sentby" } } },
+        //         {
+        //             $lookup: {
+        //                 from: "clientusers",
+        //                 localField: "cId",
+        //                 foreignField: "_id",
+        //                 as: "client_data"
+        //             }
+        //         },
+        //         { $unwind: "$client_data" },
+        //         {
+        //             $lookup: {
+        //                 from: "trainerusers",
+        //                 localField: "tId",
+        //                 foreignField: "_id",
+        //                 as: "trainer_data"
+        //             }
+        //         },
+        //         { $unwind: "$trainer_data" }
+        //     ]);
+        //     var lst = senderlist.concat(receiverlist);
+        //     resultObj.list = lst.slice(((pageNumber - 1) * limitValue), (((pageNumber - 1) * limitValue) + limitValue));
+        //     resultObj.count = lst.length || 0;
+        //     console.log(resultObj)
+        //     if (resultObj) {
+        //         return res.status(200).json({ status: 1, message: "Get Video sessions list successfully.", result: resultObj });
+        //     }
+        // }
+        // else {
+        //     const senderlist = await Notifications.aggregate([
+        //         { $match: { sentby: req.user._id } },
+        //         { "$addFields": { "cId": { "$toObjectId": "$sentto" }, "tId": { "$toObjectId": "$sentby" } } },
+        //         {
+        //             $lookup: {
+        //                 from: "clientusers",
+        //                 localField: "cId",
+        //                 foreignField: "_id",
+        //                 as: "client_data"
+        //             }
+        //         },
+        //         { $unwind: "$client_data" },
+        //         {
+        //             $lookup: {
+        //                 from: "trainerusers",
+        //                 localField: "tId",
+        //                 foreignField: "_id",
+        //                 as: "trainer_data"
+        //             }
+        //         },
+        //         { $unwind: "$trainer_data" }
+        //     ]);
+        //     const receiverlist = await Notifications.aggregate([
+        //         { $match: { sentto: req.user._id } },
+        //         { "$addFields": { "cId": { "$toObjectId": "$sentby" }, "tId": { "$toObjectId": "$sentto" } } },
+        //         {
+        //             $lookup: {
+        //                 from: "clientusers",
+        //                 localField: "cId",
+        //                 foreignField: "_id",
+        //                 as: "client_data"
+        //             }
+        //         },
+        //         { $unwind: "$client_data" },
+        //         {
+        //             $lookup: {
+        //                 from: "trainerusers",
+        //                 localField: "tId",
+        //                 foreignField: "_id",
+        //                 as: "trainer_data"
+        //             }
+        //         },
+        //         { $unwind: "$trainer_data" }
+        //     ]);
+        //     var lst = senderlist.concat(receiverlist);
+        //     resultObj.list = lst.slice(((pageNumber - 1) * limitValue), (((pageNumber - 1) * limitValue) + limitValue));
+        //     resultObj.count = lst.length || 0;
+        //     console.log(resultObj)
+        //     if (resultObj) {
+        //         return res.status(200).json({ status: 1, message: "Get Video sessions list successfully.", result: resultObj });
+        //     }
+        // }
     }
     catch (err) {
+        console.log(err)
         errorLog("notificationlist", req.body, err);
         return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
     }
@@ -902,14 +940,13 @@ const trainerBookinglist = async (req, res) => {
 
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
-        
+
         var sortObject = {};
         var sCol = req.body.sortedCol || "_id";
         var sOrd = req.body.sortedOrder || 1;
         sortObject[sCol] = sOrd;
 
         const trainerlist = await ScheduleRequestSchema.aggregate([
-            { $sort: sortObject },
             { "$addFields": { "cId": { "$toObjectId": "$userid" }, "tId": { "$toObjectId": "$trainerid" } } },
             {
                 $lookup: {
@@ -929,6 +966,7 @@ const trainerBookinglist = async (req, res) => {
                 }
             },
             { $unwind: "$trainer_data" },
+            { $sort: sortObject },
             {
                 $facet: {
                     paginatedResults: [
@@ -943,7 +981,7 @@ const trainerBookinglist = async (req, res) => {
                 }
             }
         ]);
-        console.log(trainerlist)
+        //console.log(trainerlist)
         if (trainerlist) {
             return res.status(200).json({ status: 1, message: "Get trainer booking list successfully.", result: trainerlist });
         }
@@ -963,14 +1001,13 @@ const clientBookinglist = async (req, res) => {
 
         const limitValue = req.body.limitValue || 10;
         const pageNumber = req.body.pageNumber || 1;
-        
+
         var sortObject = {};
         var sCol = req.body.sortedCol || "_id";
         var sOrd = req.body.sortedOrder || 1;
         sortObject[sCol] = sOrd;
 
         const clientlist = await ScheduleRequestSchema.aggregate([
-            { $sort: sortObject },
             { "$addFields": { "cId": { "$toObjectId": "$userid" }, "tId": { "$toObjectId": "$trainerid" } } },
             {
                 $lookup: {
@@ -990,6 +1027,7 @@ const clientBookinglist = async (req, res) => {
                 }
             },
             { $unwind: "$trainer_data" },
+            { $sort: sortObject },
             {
                 $facet: {
                     paginatedResults: [
@@ -1015,6 +1053,203 @@ const clientBookinglist = async (req, res) => {
         return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
     }
 }
+
+const getmovement = async (req, res) => {
+    try {
+        if (!req.user.isAuthenticated)
+            return res.status(200).json({ status: 2, message: "Please login to get admin." });
+
+        const limitValue = req.body.limitValue || 10;
+        const pageNumber = req.body.pageNumber || 1;
+
+        var sortObject = {};
+        var sCol = req.body.sortedCol || "_id";
+        var sOrd = req.body.sortedOrder || 1;
+        sortObject[sCol] = sOrd;
+
+        var resObj = {
+            movement: [],
+            noOfRecords: await Movement.estimatedDocumentCount({ active: true })
+        }
+        const movementlist = await Movement.find({ active: true }).sort(sortObject).skip((pageNumber - 1) * limitValue).limit(limitValue);
+        if (movementlist) {
+            resObj.movement = movementlist;
+            return res.status(200).json({ status: 1, message: "Get Movement Categorysuccessfully.", result: resObj });
+        }
+        return res.status(200).json({ status: 2, message: "Movement Category not found.", result: resObj });
+    }
+    catch (err) {
+        errorLog("getmovement", req.body, err);
+        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
+    }
+};
+
+const getmovementlist = async (req, res) => {
+    try {
+        if (!req.user.isAuthenticated)
+            return res.status(200).json({ status: 2, message: "Please login to get admin." });
+
+        const movementlist = await Movement.find({ active: true }).sort({ _id: 1});
+        if (movementlist) {
+            return res.status(200).json({ status: 1, message: "Get Movement Categorysuccessfully.", result: movementlist });
+        }
+        return res.status(200).json({ status: 2, message: "Movement Category not found." });
+    }
+    catch (err) {
+        errorLog("getmovementlist", req.body, err);
+        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
+    }
+};
+
+const savemovement = async (req, res) => {
+    try {
+        if (!req.user.isAuthenticated)
+            return res.status(200).json({ status: 2, message: "Please login to get admin." });
+
+        const movementlist = await Movement.findById({ _id: mongoose.Types.ObjectId(req.body.id) });
+        if (movementlist) {
+            movementlist.name = req.body.name;
+            movementlist.value = req.body.value;
+            movementlist.save();
+            return res.status(200).json({ status: 1, message: "Movement update successfully." });
+        } else {
+            const movementInput = {
+                name: req.body.name,
+                value: req.body.value
+            };
+            const movement = new Movement(movementInput);
+            await movement.save()
+                .then((data) => {
+                    res.status(200).json({ status: 1, message: "Movement insert successfully.", result: data });
+                })
+                .catch(function (error) {
+                    res.status(200).json({ status: 2, message: "Something getting wrong.", error: error.toString() });
+                });
+        }
+    }
+    catch (err) {
+        errorLog("savemovement", req.body, err);
+        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
+    }
+};
+const deletemovement = async (req, res) => {
+    try {
+        if (!req.user.isAuthenticated)
+            return res.status(200).json({ status: 2, message: "Please login to get admin." });
+
+        const movementlist = await Movement.findById({ _id: req.body.id });
+        if (movementlist) {
+            movementlist.deleteOne({ _id: req.body.id });
+            return res.status(200).json({ status: 1, message: "Movement delete successfully." });
+        }
+        return res.status(200).json({ status: 2, message: "Movement not found.", result: [] });
+    }
+    catch (err) {
+        errorLog("deletemovement", req.body, err);
+        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
+    }
+};
+
+const getcountry = async (req, res) => {
+    try {
+        if (!req.user.isAuthenticated)
+            return res.status(200).json({ status: 2, message: "Please login to get admin." });
+
+        const limitValue = req.body.limitValue || 10;
+        const pageNumber = req.body.pageNumber || 1;
+
+        var sortObject = {};
+        var sCol = req.body.sortedCol || "_id";
+        var sOrd = req.body.sortedOrder || 1;
+        sortObject[sCol] = sOrd;
+
+        var resObj = {
+            country: [],
+            noOfRecords: await Country.estimatedDocumentCount({ active: true })
+        }
+        const countrylist = await Country.find({ statusid: 1 }).sort(sortObject).skip((pageNumber - 1) * limitValue).limit(limitValue);
+        if (countrylist) {
+            resObj.country = countrylist;
+            return res.status(200).json({ status: 1, message: "Get Country Categorysuccessfully.", result: resObj });
+        }
+        return res.status(200).json({ status: 2, message: "Country Category not found.", result: resObj });
+    }
+    catch (err) {
+        errorLog("getcountry", req.body, err);
+        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
+    }
+};
+const getcountrylist = async (req, res) => {
+    try {
+        if (!req.user.isAuthenticated)
+            return res.status(200).json({ status: 2, message: "Please login to get admin." });
+
+        const countrylist = await Country.find({ statusid: 1 }).sort({ _id: 1});
+        if (countrylist) {
+            return res.status(200).json({ status: 1, message: "Get Country Categorysuccessfully.", result: countrylist });
+        }
+        return res.status(200).json({ status: 2, message: "Country Category not found." });
+    }
+    catch (err) {
+        errorLog("getcountrylist", req.body, err);
+        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
+    }
+};
+
+const savecountry = async (req, res) => {
+    try {
+        if (!req.user.isAuthenticated)
+            return res.status(200).json({ status: 2, message: "Please login to get admin." });
+
+        const countrylist = await Country.findById({ _id: mongoose.Types.ObjectId(req.body.id) });
+        if (countrylist) {
+            countrylist.name = req.body.name;
+            countrylist.shortname = req.body.shortname;
+            countrylist.code = req.body.code;
+            countrylist.mask = req.body.mask;
+            countrylist.statusid = req.body.statusid;
+            countrylist.save();
+            return res.status(200).json({ status: 1, message: "Country update successfully." });
+        } else {
+            const countryInput = {
+                name: req.body.name,
+                shortname: req.body.shortname,
+                code: req.body.code,
+                mask: req.body.mask,
+                statusid: req.body.statusid
+            };
+            const country = new Country(countryInput);
+            await country.save()
+                .then((data) => {
+                    res.status(200).json({ status: 1, message: "Country insert successfully.", result: data });
+                })
+                .catch(function (error) {
+                    res.status(200).json({ status: 2, message: "Something getting wrong.", error: error.toString() });
+                });
+        }
+    }
+    catch (err) {
+        errorLog("savecountry", req.body, err);
+        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
+    }
+};
+const deletecountry = async (req, res) => {
+    try {
+        if (!req.user.isAuthenticated)
+            return res.status(200).json({ status: 2, message: "Please login to get admin." });
+
+        const countrylist = await Country.findById({ _id: req.body.id });
+        if (countrylist) {
+            countrylist.deleteOne({ _id: req.body.id });
+            return res.status(200).json({ status: 1, message: "Country delete successfully." });
+        }
+        return res.status(200).json({ status: 2, message: "Country not found.", result: [] });
+    }
+    catch (err) {
+        errorLog("deletecountry", req.body, err);
+        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
+    }
+};
 
 module.exports = {
     getworkoutcategory,
@@ -1043,5 +1278,13 @@ module.exports = {
     getSettingbycode,
     settinglist,
     trainerBookinglist,
-    clientBookinglist
+    clientBookinglist,
+    getmovement,
+    getmovementlist,
+    savemovement,
+    deletemovement,
+    getcountry,
+    getcountrylist,
+    savecountry,
+    deletecountry
 };

@@ -24,6 +24,7 @@ const ScheduleRequestUpdate = async (req, res) => {
                     date: new Date(),
                     title: "Reject session request",
                     description: msg,
+                    type: req.user,
                     sentby: req.user._id || "-",
                     sentto: userdata._id || "-",
                 };
@@ -253,6 +254,7 @@ const workout = async (req, res) => {
                 date: new Date(),
                 title: "Fill session workout",
                 description: msg,
+                type: req.user,
                 sentby: req.user._id || "-",
                 sentto: userdata._id || "-",
             };

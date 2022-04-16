@@ -30,7 +30,8 @@ const userSchema = new schema({
     standersession: { type: Number },
     elitesession: { type: Number },
     videostatus: { type: Number, required: false, default: 0 },
-    meetingid: { type: String, default: "" }
+    meetingid: { type: String, default: "" },
+    notification: { type: {} }
 }, { timestamps: true });
 
 module.exports = mongoose.model("clientusers", userSchema);

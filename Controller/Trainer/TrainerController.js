@@ -196,27 +196,155 @@ const trainer = async (req, res) => {
     }
 };
 
+const maintrainerlist = async (req, res) => {
+    try {
+        if (!req.user.isAuthenticated)
+            return res.status(200).json({ status: 2, message: "Please login to get trainer." });
+
+        const limitValue = req.body.limitValue || 6;
+        const pageNumber = req.body.pageNumber || 1;
+
+        const clientlist = await Client.findById({ _id: req.user._id });
+        var resObj = {
+            trainerlist: [],
+            noOfRecords: 0,
+            client_data: clientlist
+        }
+        console.log(req.body);
+
+        var sortObject = {};
+        if (req.body.ratings === '' || req.body.ratings === undefined || req.body.ratings === null) {
+            sortObject["_id"] = 1;
+        } else {
+            sortObject["averageRating"] = parseInt(req.body.ratings)
+        }
+        //req.body.ratings = (req.body.ratings === '') ? 1 : req.body.ratings;
+        var filter = {};
+        try {
+            if (req.body.isfilter === true) {
+                filter.statusid = 1;
+                filter.availablestatus = req.body.availablestatus;
+                if (req.body.gender && req.body.gender != '')
+                    filter.gender = { $regex: new RegExp(`^${req.body.gender}$`), $options: 'i' };
+                if (req.body.type && req.body.type != '')
+                    filter.type = req.body.type;
+                if (req.body.name && req.body.name != '')
+                    filter.firstname = { $regex: new RegExp(`^${req.body.name}$`), $options: 'i' };//{ $regex: '.*' + req.body.name + '.*' };
+            }
+            else if (req.body.availablestatus === 0) {
+                filter.statusid = 1;
+                filter.availablestatus = req.body.availablestatus;
+            }
+            else if (req.body.availablestatus === -1 && req.body.id != null) {
+                filter.statusid = 1;
+                filter._id = req.body.id;
+            } else {
+                filter.statusid = 1;
+                filter.availablestatus = req.body.availablestatus
+            }
+            console.log(filter);
+
+            const trainerlist = await Users.aggregate([
+                { $match: filter },
+                // JOIN WITH SESSIONREQUEST
+                { "$addFields": { "tId": { "$toString": "$_id" } } },
+                {
+                    $lookup: {
+                        from: "sessionrequests",
+                        localField: "tId",
+                        foreignField: "trainerid",
+                        as: "session_data",
+                    }
+                },
+                { $unwind: { path: "$session_data.sessionrating", preserveNullAndEmptyArrays: true } },
+                {
+                    $project: {
+                        averageRating: {
+                            $cond: {
+                                if: { $eq: [{ $divide: [{ $avg: "$session_data.sessionrating.rate" }, 20] }, null] },
+                                then: 0,
+                                else: { $divide: [{ $avg: "$session_data.sessionrating.rate" }, 20] }
+                            }
+                        },
+                        _id: 1,
+                        firstname: 1,
+                        lastname: 1,
+                        profile: 1,
+                        trainingstyle: 1,
+                        availablestatus: 1,
+                        type: 1,
+                        // session_data: {
+                        //     startdatetime: 1,
+                        //     enddatetime: 1
+                        //     // currentLeftTime: 
+                        //     // {
+                        //     //     $subtract : ['$enddatetime', 15 * 60 * 1000]
+                        //     // }
+                        // }
+                    },
+                },
+                { $sort: sortObject },
+                // {
+                //     $facet: {
+                //         paginatedResults: [
+                //             { $skip: (pageNumber - 1) * limitValue },
+                //             { $limit: limitValue },
+                //         ],
+                //         totalCount: [
+                //             {
+                //                 $count: 'count'
+                //             }
+                //         ]
+                //     }
+                // }
+            ]);
+            if (trainerlist) {
+                resObj.noOfRecords = trainerlist.length || 0;
+                resObj.trainerlist = trainerlist.slice(((pageNumber - 1) * limitValue), (((pageNumber - 1) * limitValue) + limitValue));
+                return res.status(200).json({ status: 1, message: "Get successfully.", result: resObj });
+            }
+            //console.log("Users1 Data:", JSON.stringify(Users1));
+        }
+        catch (err) {
+            console.log("Error", err);
+            errorLog("trainer", req.body, err);
+            return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
+        }
+        return res.status(200).json({ status: 2, message: "Trainer not found." });
+    }
+    catch (err) {
+        errorLog("trainer", req.body, err);
+        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: err.toString() });
+    }
+};
+
 const savetrainerlist = async (req, res) => {
     try {
         if (!req.user.isAuthenticated)
             return res.status(200).json({ status: 2, message: "Please login to get trainer." });
 
+        const limitValue = req.body.limitValue || 6;
+        const pageNumber = req.body.pageNumber || 1;
+
         const clientlist = await Client.findById({ _id: req.user._id });
         var resObj = {
             trainerlist: [],
+            noOfRecords: 0,
             client_data: clientlist
         }
         if (req.body.availablestatus === 0) {
             const trainerlist = await Users.find({ statusid: 1, _id: { $in: (clientlist.bookmarktrainer || []) } });
             if (trainerlist) {
-                resObj.trainerlist = trainerlist;
+                resObj.noOfRecords = trainerlist.length || 0;
+                resObj.trainerlist = trainerlist.slice(((pageNumber - 1) * limitValue), (((pageNumber - 1) * limitValue) + limitValue));
                 return res.status(200).json({ status: 1, message: "Get successfully.", result: resObj });
             }
         }
         else {
             const trainerlist = await Users.find({ statusid: 1, availablestatus: req.body.availablestatus, _id: { $in: (clientlist.bookmarktrainer || []) } });
             if (trainerlist) {
-                resObj.trainerlist = trainerlist;
+                resObj.noOfRecords = trainerlist.length || 0;
+                resObj.trainerlist = trainerlist.slice(((pageNumber - 1) * limitValue), (((pageNumber - 1) * limitValue) + limitValue));
                 return res.status(200).json({ status: 1, message: "Get successfully.", result: resObj });
             }
         }
@@ -229,7 +357,6 @@ const savetrainerlist = async (req, res) => {
 };
 
 const savetrainer = async (req, res) => {
-    console.log(req.body);
     try {
         if (!req.user.isAuthenticated)
             return res.status(200).json({ status: 2, message: "Please login to update trainer." });
@@ -362,7 +489,6 @@ const trainerrating = async (req, res) => {
             { $unwind: "$client_data" },
         ]);
         if (trainerlist) {
-            console.log(trainerlist)
             return res.status(200).json({ status: 1, message: "Get session successfully.", result: trainerlist });
         }
         return res.status(200).json({ status: 1, message: "Get session successfully.", result: [] });
@@ -390,4 +516,4 @@ const getworkoutcategory = async (req, res) => {
     }
 };
 
-module.exports = { trainer, savetrainerlist, deletetrainer, searchtrainer, savetrainer, trainerrating, trainerdetails, getworkoutcategory };
+module.exports = { trainer, savetrainerlist, deletetrainer, searchtrainer, savetrainer, trainerrating, trainerdetails, getworkoutcategory, maintrainerlist };

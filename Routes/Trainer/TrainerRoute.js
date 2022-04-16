@@ -13,5 +13,5 @@ TrainerRoute.post("/savetrainer", JWTAuth, TrainerController.savetrainer);
 TrainerRoute.get("/myratings", JWTAuth, TrainerController.trainerrating);
 TrainerRoute.post("/gettrainer", JWTAuth, TrainerController.trainerdetails);
 TrainerRoute.get("/getworkoutcategory", JWTAuth, TrainerController.getworkoutcategory);
-
+TrainerRoute.post("/maintrainerlist", JWTAuth, TrainerController.maintrainerlist);
 module.exports = TrainerRoute;
