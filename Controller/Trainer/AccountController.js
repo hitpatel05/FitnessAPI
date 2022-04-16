@@ -210,7 +210,7 @@ const updateTrainerPara = async (req, res) => {
                 if (qualificationsObj.path) {
                     qualificationsObj.path.forEach(element => {
                         var qfilename = "";
-                        errorLog("JSON CONVERT", req.files[element.path], "First Object file");
+                        //errorLog("JSON CONVERT", req.files[element.name], "First Object file");
 
                         if (element.name == req.files[element.name].name) {
                             const file = req.files[element.name];
