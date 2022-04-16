@@ -202,8 +202,11 @@ const register = async (req, res) => {
 const updateTrainerPara = async (req, res) => {
     try {
         console.log(req.body)
+        errorLog("Q - files", req.body, "Object body");
         console.log("Q - files")
         console.log(req.files)
+        errorLog("Q - files", req.files, "Object file");
+        errorLog("Q - files", JSON.stringify(req.files), "JSON Object file");
         var qualificationsObj = (req.body.qualifications != "") ? JSON.parse(req.body.qualifications) : null;
         var certificationsObj = (req.body.certifications != "") ? JSON.parse(req.body.certifications) : null;
         if (req.files) {
