@@ -227,8 +227,9 @@ const updateTrainerPara = async (req, res) => {
                             qfilename = "/public/trainerqualifications/" + `qualification_${Date.now()}${extensionName}`;
 
                             file.mv("." + qfilename);
-                        } else if (element.fpath == req.files[element.name].path) {
-                            const file = req.files[element.name].path;
+                        } else if (element.fpath == req.files[element.name].uri) {
+                            errorLog("JSON CONVERT", null, "Inner Object file");
+                            const file = req.files[element.name];
                             console.log(element.name)
                             const extensionName = path.extname(element.name); // fetch the file extension
                             const allowedExtension = ['.png', '.jpg', '.jpeg'];
@@ -275,8 +276,8 @@ const updateTrainerPara = async (req, res) => {
                             cfilename = "/public/trainercertifications/" + `certification_${Date.now()}${extensionName}`;
 
                             file.mv("." + cfilename);
-                        } else if (element.fpath == req.files[element.name].path) {
-                            const file = req.files[element.name].path;
+                        } else if (element.fpath == req.files[element.name].uri) {
+                            const file = req.files[element.name];
                             console.log(element.name)
                             const extensionName = path.extname(element.name); // fetch the file extension
                             const allowedExtension = ['.png', '.jpg', '.jpeg'];
