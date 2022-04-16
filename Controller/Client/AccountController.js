@@ -87,10 +87,11 @@ const register = async (req, res) => {
                     var emaildata = { "to": userInput.email, "subject": "Member Registration", "html": emailbody };
 
                     let emailresult = await SendMailHtml(emaildata);
-                    if (emailresult === true)
-                        return res.status(200).json({ status: 1, message: "Member Registration successfully email sent.", result: data });
-                    else
-                        return res.status(200).json({ status: 2, message: "Something getting wrong." });
+                    return res.status(200).json({ status: 1, message: "Member Registration successfully email sent.", result: data });
+                    // if (emailresult === true)
+                    //     return res.status(200).json({ status: 1, message: "Member Registration successfully email sent.", result: data });
+                    // else
+                    //     return res.status(200).json({ status: 2, message: "Something getting wrong." });
                 });
 
                 //return res.status(200).json({ status: 1, message: "Registration successfully.", result: data });
