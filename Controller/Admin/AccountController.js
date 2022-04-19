@@ -86,7 +86,7 @@ const forgotpassword = async (req, res) => {
                 if (emailresult === true)
                     return res.status(200).json({ status: 1, message: "Reset password link sent to your registred email." });
                 else
-                    return res.status(200).json({ status: 2, message: "Something getting wrong." });
+                    return res.status(200).json({ status: 2, message: "Email not sent. Please contact administrative." });
             });
         }
         else

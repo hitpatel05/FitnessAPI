@@ -17,11 +17,11 @@ const userSchema = new schema({
   quote: { type: String },
   experience: { type: Number },
   //qualifications: { name: { type: String }, path: [ { uri: { type: String }, name: { type: String }, type: { type: String }}]},
-  qualifications:  { type: {} },
+  qualifications: { type: {} },
   specialitys: { type: String },
   introduction: { type: String },
   //certifications:  { name: { type: String }, path: [ { uri: { type: String }, name: { type: String }, type: { type: String }}]},
-  certifications:  { type: {} },
+  certifications: { type: {} },
   emailnotifications: { type: Boolean },
   maillinglist: { type: Boolean },
   textnotifications: { type: Boolean },
@@ -29,7 +29,9 @@ const userSchema = new schema({
   availablestatus: { type: Number, required: false, default: 0 },
   type: { type: String },
   videostatus: { type: Number, required: false, default: 0 },
-  meetingid: { type: String, default: "" }
+  meetingid: { type: String, default: "" },
+  deviceid: { type: String },
+  devicetype: { type: String }
 }, { timestamps: true });
 
 module.exports = mongoose.model("trainerusers", userSchema);

@@ -16,6 +16,7 @@ const PaymentRoute = require("./Routes/Payment/PaymentRoute");
 const AdminAccountRoute = require("./Routes/Admin/AccountRoute");
 const AdminRoute = require("./Routes/Admin/AdminRoute");
 const VideoSessionRoute = require("./Routes/Meeting/VideoSessionRoute");
+const NotificationRoute = require("./Routes/Notification/NotificationRoute");
 require("./db/dbconnection");//Mongo DB Connection
 
 const app = express();
@@ -53,6 +54,7 @@ app.use("/payment", PaymentRoute);
 app.use("/admin/account", AdminAccountRoute);
 app.use("/admin", AdminRoute);
 app.use("/meeting", VideoSessionRoute);
+app.use("/notification", NotificationRoute);
 app.get("/public/profile/:path", (req, res) => {
     res.download(__dirname + "/public/profile/" + req.params.path);
 });

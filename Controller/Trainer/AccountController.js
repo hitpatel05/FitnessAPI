@@ -31,6 +31,8 @@ const login = async (req, res) => {
 
             // Available Status Active Trainer - Available Now - 1 - Green
             userexists.availablestatus = 1;
+            userexists.deviceid = req.body.deviceid || "";
+            userexists.devicetype = req.body.devicetype || "";
             userexists.save();
 
             const token = await JWT.sign({ _id: userexists._id, isAuthenticated: true, role: "trainer" }, JWTSECRET, {})
@@ -64,6 +66,8 @@ const logout = async (req, res) => {
         if (userexists) {
             // Available Status Offline Trainer - 0 - Grey
             userexists.availablestatus = 0;
+            userexists.deviceid = "";
+            userexists.devicetype = "";
             userexists.save();
             return res.status(200).json({ status: 1, message: "Logout successfully." });
         }
@@ -179,10 +183,10 @@ const register = async (req, res) => {
                     var emaildata = { "to": userInput.email, "subject": "Trainer Registration", "html": emailbody };
 
                     let emailresult = await SendMailHtml(emaildata);
-                    // if (emailresult === true)
-                    //     return res.status(200).json({ status: 1, message: "Trainer Registration successfully email sent.", result: data });
-                    // else
-                    //     return res.status(200).json({ status: 2, message: "Something getting wrong." });
+                    if (emailresult === true)
+                        return res.status(200).json({ status: 1, message: "Trainer Registration successfully email sent.", result: userdata });
+                    else
+                        return res.status(200).json({ status: 1, message: "Trainer Registration successfully.", result: userdata });
                 });
 
 
@@ -201,7 +205,6 @@ const register = async (req, res) => {
 
 const updateTrainerPara = async (req, res) => {
     try {
-        console.log(req.body)
         var qualificationsObj = (req.body.qualifications != "") ? JSON.parse(req.body.qualifications) : null;
         var certificationsObj = (req.body.certifications != "") ? JSON.parse(req.body.certifications) : null;
         if (req.files) {
@@ -210,11 +213,8 @@ const updateTrainerPara = async (req, res) => {
                 if (qualificationsObj.path) {
                     qualificationsObj.path.forEach(element => {
                         var qfilename = "";
-                        //errorLog("JSON CONVERT", req.files[element.name], "First Object file");
-
                         if (element.name == req.files[element.name].name) {
                             const file = req.files[element.name];
-                            console.log(file.name)
                             const extensionName = path.extname(file.name); // fetch the file extension
                             const allowedExtension = ['.png', '.jpg', '.jpeg'];
 
@@ -228,9 +228,7 @@ const updateTrainerPara = async (req, res) => {
 
                             file.mv("." + qfilename);
                         } else if (element.fpath == req.files[element.name].uri) {
-                            errorLog("JSON CONVERT", null, "Inner Object file");
                             const file = req.files[element.name];
-                            console.log(element.name)
                             const extensionName = path.extname(element.name); // fetch the file extension
                             const allowedExtension = ['.png', '.jpg', '.jpeg'];
 
@@ -247,7 +245,8 @@ const updateTrainerPara = async (req, res) => {
                         Qimgllist.push({
                             "uri": qfilename,
                             "name": element.name,
-                            "type": element.type
+                            "type": element.type,
+                            "qualification":  element.qualification || ""
                         })
                     });
                 }
@@ -263,7 +262,6 @@ const updateTrainerPara = async (req, res) => {
                         var cfilename = "";
                         if (element.name == req.files[element.name].name) {
                             const file = req.files[element.name];
-                            console.log(file.name)
                             const extensionName = path.extname(file.name); // fetch the file extension
                             const allowedExtension = ['.png', '.jpg', '.jpeg'];
 
@@ -278,7 +276,6 @@ const updateTrainerPara = async (req, res) => {
                             file.mv("." + cfilename);
                         } else if (element.fpath == req.files[element.name].uri) {
                             const file = req.files[element.name];
-                            console.log(element.name)
                             const extensionName = path.extname(element.name); // fetch the file extension
                             const allowedExtension = ['.png', '.jpg', '.jpeg'];
 
@@ -295,7 +292,8 @@ const updateTrainerPara = async (req, res) => {
                         Cimgllist.push({
                             "uri": cfilename,
                             "name": element.name,
-                            "type": element.type
+                            "type": element.type,
+                            "certification":  element.certification || ""
                         })
                     });
                 }
@@ -304,87 +302,7 @@ const updateTrainerPara = async (req, res) => {
                     "path": Cimgllist
                 }
             }
-        } 
-        // else {
-        //     errorLog("Q NOT- files", req.files, "Object file");
-        //     errorLog("Q NOT- files", qualificationsObj, "qualificationsObj file");
-        //     if (req.body.qualifications != "" && qualificationsObj) {
-        //         var Qimgllist = [];
-        //         //errorLog("Q NOT- files", JSON.parse(qualificationsObj), "qualificationsObj JSON file");
-        //         if (qualificationsObj.path) {
-        //             errorLog("Add Qo bject", qualificationsObj, "Object file");
-        //             qualificationsObj.path.forEach(element => {
-        //                 var qfilename = "";
-        //                 errorLog("Add loop bject", element.uri, "Object file");
-        //                 if (element.uri) {
-        //                     const file = element.uri;
-        //                     console.log(element.name)
-        //                     errorLog("Add loop name", element.name, "Object file");
-        //                     const extensionName = path.extname(element.name); // fetch the file extension
-        //                     const allowedExtension = ['.png', '.jpg', '.jpeg'];
-
-        //                     if (!allowedExtension.includes(extensionName))
-        //                         return res.status(422).json({ status: 2, message: "Only .png, .jpg and .jpeg format allowed." });
-
-        //                     if (file.size > (1024 * 1024 * 1))
-        //                         return res.status(422).json({ status: 2, message: "File size is more than 1 MB." });
-
-        //                     qfilename = "/public/trainerqualifications/" + `qualification_${Date.now()}${extensionName}`;
-
-        //                     file.mv("." + qfilename);
-        //                 }
-        //                 Qimgllist.push({
-        //                     "uri": qfilename,
-        //                     "name": element.name,
-        //                     "type": element.uri[0].mime
-        //                 })
-        //             });
-        //         }
-        //         var qualifi = {
-        //             "name": (qualificationsObj) ? qualificationsObj.name : "",
-        //             "path": Qimgllist
-        //         }
-        //     }
-        //     if (req.body.certifications != "" && certificationsObj) {
-        //         var Cimgllist = [];
-        //         if (certificationsObj.path) {
-        //             certificationsObj.path.forEach(element => {
-        //                 var cfilename = "";
-        //                 if (element.uri) {
-        //                     const file = element.uri;
-        //                     console.log(element.name)
-        //                     errorLog("Add loop name", element.name, "Object file");
-        //                     const extensionName = path.extname(element.name); // fetch the file extension
-        //                     const allowedExtension = ['.png', '.jpg', '.jpeg'];
-
-        //                     if (!allowedExtension.includes(extensionName))
-        //                         return res.status(422).json({ status: 2, message: "Only .png, .jpg and .jpeg format allowed." });
-
-        //                     if (file.size > (1024 * 1024 * 1))
-        //                         return res.status(422).json({ status: 2, message: "File size is more than 1 MB." });
-
-        //                     cfilename = "/public/trainercertifications/" + `certification_${Date.now()}${extensionName}`;
-
-        //                     file.mv("." + cfilename);
-        //                 }
-        //                 Cimgllist.push({
-        //                     "uri": cfilename,
-        //                     "name": element.name,
-        //                     "type": element.uri[0].mime
-        //                 })
-        //             });
-        //         }
-        //         var certifi = {
-        //             "name": (certificationsObj) ? certificationsObj.name : "",
-        //             "path": Cimgllist
-        //         }
-        //     }
-        // }
-        errorLog("BEFORE JSON CONVERT", null, "Object file");
-        console.log(qualifi)
-        errorLog("Q - AFTER JSON CONVERT", qualifi, "Object file");
-        console.log(certifi)
-        errorLog("C - AFTER JSON CONVERT", certifi, "Object file");
+        }
         const userdata = await Users.findOne({ _id: req.body.id });
         if (userdata) {
             if (req.body.qualifications != "") {
@@ -547,7 +465,7 @@ const forgotpassword = async (req, res) => {
                 if (emailresult === true)
                     return res.status(200).json({ status: 1, message: "Reset password link sent to your registred email." });
                 else
-                    return res.status(200).json({ status: 2, message: "Something getting wrong." });
+                    return res.status(200).json({ status: 2, message: "Email not sent. Please contact administrative." });
             });
         }
         else

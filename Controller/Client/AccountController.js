@@ -75,7 +75,7 @@ const register = async (req, res) => {
         const user = new Users(userInput);
 
         await user.save()
-            .then((data) => {
+            .then((userdata) => {
 
                 // Mail code.
                 fs.readFile("./EmailTemplate/MemberSignup.html", async (error, data) => {
@@ -87,11 +87,11 @@ const register = async (req, res) => {
                     var emaildata = { "to": userInput.email, "subject": "Member Registration", "html": emailbody };
 
                     let emailresult = await SendMailHtml(emaildata);
-                    return res.status(200).json({ status: 1, message: "Member Registration successfully email sent.", result: data });
-                    // if (emailresult === true)
-                    //     return res.status(200).json({ status: 1, message: "Member Registration successfully email sent.", result: data });
-                    // else
-                    //     return res.status(200).json({ status: 2, message: "Something getting wrong." });
+                    //return res.status(200).json({ status: 1, message: "Member Registration successfully email sent.", result: data });
+                    if (emailresult === true)
+                        return res.status(200).json({ status: 1, message: "Member Registration successfully email sent.", result: userdata });
+                    else
+                        return res.status(200).json({ status: 1, message: "Member Registration successfully.", result: userdata });
                 });
 
                 //return res.status(200).json({ status: 1, message: "Registration successfully.", result: data });
@@ -147,6 +147,10 @@ const login = async (req, res) => {
             // .catch(function (error) {
             //     res.status(200).json({ status: 2, message: "Something getting wrong.", error: error, result: {} });
             // });
+            userexists.deviceid = req.body.deviceid || "";
+            userexists.devicetype = req.body.devicetype || "";
+            userexists.save();
+
             res.cookie("access_token", token);
 
             return res.status(200).json({
@@ -287,34 +291,16 @@ const updateNotification = async (req, res) => {
         const updateNotificationInput = await Users.findOne({ _id: mongoose.Types.ObjectId(req.user._id) });
         if (updateNotificationInput) {
             updateNotificationInput.notification = req.body.notification;
+            console.log(req.body.notification);
+
+            updateNotificationInput.mobilenotifications = req.body.notification.app.isApp;
+            updateNotificationInput.emailnotifications = req.body.notification.email.isEmail;
+            updateNotificationInput.maillinglist = req.body.notification.mailing.ismailing;
+            updateNotificationInput.textnotifications = req.body.notification.text.isText;
+            // updateNotificationInput.webnotifications = req.body.notification;
             updateNotificationInput.save();
 
-            // const userdata = await Users.findOne({ _id: mongoose.Types.ObjectId(scheduleRequestInput.userid) });
-            // const trainerdata = await Trainers.findOne({ _id: mongoose.Types.ObjectId(scheduleRequestInput.trainerid) });
-            // // Client SMS Code
-            // if (req.body.status != 1) {
-            //     let msg = userdata.firstname + " your session request is reject by " + trainerdata.firstname + "."
-            //     var jsonData = {
-            //         date: new Date(),
-            //         title: "Reject session request",
-            //         description: msg,
-            //         type: req.user,
-            //         sentby: req.user._id || "-",
-            //         sentto: userdata._id || "-",
-            //     };
-            //     var obj = {
-            //         number: userdata.phoneno,
-            //         body: (msg || ""),
-            //         data: jsonData
-            //     }
-            //     let smsresult = SendTextMessage(obj);
-            // }
-            var notif = updateNotificationInput.notification
-            // var notif = {};
-            // const updateNotification = await Users.findOne({ _id: mongoose.Types.ObjectId(req.user._id) });
-            // if (updateNotification) {
-            //      notif = (updateNotification.notification == undefined || updateNotification.notification == null) ? {} : updateNotification.notification;
-            // }
+            var notif = updateNotificationInput.notification;
             return res.status(200).json({ status: 1, message: "Update notification  successfully.", result: notif });
         }
         return res.status(200).json({ status: 2, message: "User not found." });
@@ -366,7 +352,7 @@ const forgotpassword = async (req, res) => {
                 if (emailresult === true)
                     return res.status(200).json({ status: 1, message: "Reset password link sent to your registred email." });
                 else
-                    return res.status(200).json({ status: 2, message: "Something getting wrong." });
+                return res.status(200).json({ status: 2, message: "Email not sent. Please contact administrative." });
             });
         }
         else
@@ -443,7 +429,7 @@ const saveprogressphotos = async (req, res) => {
                 filist.push(qfilename);
             });
             imgllist.push({
-                "date": req.body.progressphotos,
+                "date": new Date(req.body.progressphotos),
                 "list": filist
             })
         }

@@ -1,8 +1,10 @@
 const SessionRequestSchema = require("../../Model/Client/SessionRequestSchema");
 const Users = require("../../Model/Trainer/UserSchema");
 const Trainers = require("../../Model/Trainer/UserSchema");
-const { SendTextMessage } = require("../SMSController");
 const mongoose = require('mongoose');
+const fs = require("fs");
+const { SendMailHtml } = require("../EmailController");
+const { SendTextMessage } = require("../SMSController");
 const { errorLog } = require("../Errorcontroller");
 
 const SessionRequest = async (req, res) => {
@@ -25,12 +27,50 @@ const SessionRequest = async (req, res) => {
         //const userdata = await Users.findOne({ _id:  mongoose.Types.ObjectId(sessionrequestInput.userid) });
         const trainerdata = await Trainers.findOne({ _id: mongoose.Types.ObjectId(sessionrequestInput.trainerid) });
         const sessionrequest = new SessionRequestSchema(sessionrequestInput);
-
         await sessionrequest.save()
             .then((data) => {
+                const userdata = Users.findOne({ _id: mongoose.Types.ObjectId(sessionrequestInput.userid) });
+
+                fs.readFile("./EmailTemplate/SessionBooking.html", async (error, data) => {
+                    if (error)
+                        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: error.toString() });
+                    // Trainer Email Code
+                    const emailbody = data.toString()
+                        .replace("##UserName##", trainerdata.firstname || "Trainer")
+                        .replace("##TypeName##", "Trainer Name")
+                        .replace("##SenderName##", trainerdata.firstname)
+                        .replace("##SessionDate##", new Date(sessionrequestInput.date).toDateString())
+                        .replace("##SessionTime##", sessionrequestInput.starthour + " - " + sessionrequestInput.endhour)
+
+                    var emaildata = { "to": trainerdata.email, "subject": "Session request.", "html": emailbody };
+                    let emailresult = await SendMailHtml(emaildata);
+                    // if (emailresult === true)
+                    //     return res.status(200).json({ status: 1, message: "Session request successfully." });
+                    // else
+                    //     return res.status(200).json({ status: 2, message: "Something getting wrong." });
+                });
+
+                fs.readFile("./EmailTemplate/SessionBooking.html", async (error, data) => {
+                    if (error)
+                        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: error.toString() });
+                    // Client Email Code
+                    const emailbody1 = data.toString()
+                        .replace("##UserName##", userdata.firstname || "Client")
+                        .replace("##TypeName##", "Client Name")
+                        .replace("##SenderName##", userdata.firstname || "Client")
+                        .replace("##SessionDate##", new Date(sessionrequestInput.date).toDateString())
+                        .replace("##SessionTime##", sessionrequestInput.starthour + " - " + sessionrequestInput.endhour)
+
+                    var emaildata1 = { "to": userdata.email , "subject": "Session request.", "html": emailbody1 };
+                    let emailresult1 = await SendMailHtml(emaildata1);
+                    // if (emailresult === true)
+                    //     return res.status(200).json({ status: 1, message: "Session request successfully." });
+                    // else
+                    //     return res.status(200).json({ status: 2, message: "Something getting wrong." });
+                });
+
 
                 // Client SMS Code
-                const userdata = Users.findOne({ _id: mongoose.Types.ObjectId(sessionrequestInput.userid) });
                 let msg = userdata.firstname + " your session request is sent successfully."
                 var jsonData = {
                     date: new Date(),
@@ -409,6 +449,26 @@ const rating = async (req, res) => {
         if (sessionRequestInput) {
             sessionRequestInput.sessionrating = req.body;
             sessionRequestInput.save();
+
+            const trainerdata = Trainers.findOne({ _id: mongoose.Types.ObjectId(sessionRequestInput.trainerid) });
+
+            fs.readFile("./EmailTemplate/Review.html", async (error, data) => {
+                if (error)
+                    return res.status(200).json({ status: 2, message: "Something getting wrong.", error: error.toString() });
+
+                const emailbody = data.toString()
+                    .replace("##TrainerName##", trainerdata.firstname || "Trainer")
+                    .replace("##ClientName##", req.user.firstname || "Client")
+
+                var emaildata = { "to": trainerdata.email, "subject": "Give the review.", "html": emailbody };
+
+                let emailresult = await SendMailHtml(emaildata);
+                // if (emailresult === true)
+                //     return res.status(200).json({ status: 1, message: "Save rating successfully." });
+                // else
+                //     return res.status(200).json({ status: 2, message: "Something getting wrong." });
+            });
+
             return res.status(200).json({ status: 1, message: "Save rating successfully." });
         }
         return res.status(200).json({ status: 2, message: "Request not found." });

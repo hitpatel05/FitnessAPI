@@ -1,9 +1,12 @@
 const Users = require("../../Model/Client/UserSchema");
+const Trainers = require("../../Model/Trainer/UserSchema");
 const BlockInfoTrainerSchema = require("../../Model/Trainer/BlockInfoTrainerSchema");
 const BlockInfoClientSchema = require("../../Model/Client/BlockInfoClientSchema");
+const mongoose = require('mongoose');
+const fs = require("fs");
+const { SendMailHtml } = require("../EmailController");
 const { SendTextMessage } = require("../SMSController");
 const { errorLog } = require("../Errorcontroller");
-const mongoose = require('mongoose');
 
 const deleteclient = async (req, res) => {
     if (!req.user.isAuthenticated)
@@ -172,7 +175,7 @@ const bookmarktrainer = async (req, res) => {
         if (userdata) {
             const bookmarktrainerList = userdata.bookmarktrainer || [];
             //console.log(bookmarktrainerList);
-            const TrainersDB = await Users.findOne({ _id: mongoose.Types.ObjectId(req.body.tainerId) });
+            const TrainersDB = await Trainers.findOne({ _id: mongoose.Types.ObjectId(req.body.tainerId) });
             console.log(bookmarktrainerList.findIndex(instance => instance === req.body.tainerId));
             var ind = bookmarktrainerList.findIndex(instance => instance === req.body.tainerId);
             if (ind > -1) {
@@ -184,6 +187,24 @@ const bookmarktrainer = async (req, res) => {
             userdata.save();
 
             if (ind == 0) {
+                // Trainer Email Code
+                fs.readFile("./EmailTemplate/Favourite.html", async (error, data) => {
+                    if (error)
+                        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: error.toString() });
+
+                    const emailbody = data.toString()
+                        .replace("##TrainerName##", TrainersDB.firstname || "Trainer")
+                        .replace("##ClientName##", userdata.firstname || "Client")
+
+                    var emaildata = { "to": TrainersDB.email, "subject": "Favourite trainer.", "html": emailbody };
+
+                    let emailresult = await SendMailHtml(emaildata);
+                    // if (emailresult === true)
+                    //     return res.status(200).json({ status: 1, message: "Favourite trainer successfully." });
+                    // else
+                    //     return res.status(200).json({ status: 2, message: "Something getting wrong." });
+                });
+
                 // Client SMS Code
                 let msg = userdata.firstname + " favourite to you."
                 var jsonData = {

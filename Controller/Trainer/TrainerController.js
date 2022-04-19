@@ -228,6 +228,8 @@ const maintrainerlist = async (req, res) => {
                     filter.gender = { $regex: new RegExp(`^${req.body.gender}$`), $options: 'i' };
                 if (req.body.type && req.body.type != '')
                     filter.type = req.body.type;
+                if (req.body.typeOfWorkout && req.body.typeOfWorkout != '')
+                    filter.trainingstyle = { $regex: RegExp('.*' + req.body.typeOfWorkout + '.*') };//{ $regex: new RegExp(`^${req.body.typeOfWorkout},$`) };
                 if (req.body.name && req.body.name != '')
                     filter.firstname = { $regex: new RegExp(`^${req.body.name}$`), $options: 'i' };//{ $regex: '.*' + req.body.name + '.*' };
             }
@@ -267,12 +269,26 @@ const maintrainerlist = async (req, res) => {
                             }
                         },
                         _id: 1,
+                        coverprofile: 1,
+                        profile: 1,
                         firstname: 1,
                         lastname: 1,
-                        profile: 1,
+                        email: 1,
+                        phoneno: 1,
+                        gender: 1,
+                        aboutus: 1,
                         trainingstyle: 1,
+                        quote: 1,
+                        experience: 1,
+                        specialitys: 1,
+                        introduction: 1,
+                        emailnotifications: 1,
+                        maillinglist: 1,
+                        textnotifications: 1,
+                        statusid: 1,
                         availablestatus: 1,
-                        type: 1,
+                        videostatus: 1,
+                        meetingid: 1
                         // session_data: {
                         //     startdatetime: 1,
                         //     enddatetime: 1
@@ -327,10 +343,12 @@ const savetrainerlist = async (req, res) => {
         const pageNumber = req.body.pageNumber || 1;
 
         const clientlist = await Client.findById({ _id: req.user._id });
+        const rankinglist = await ScheduleRequestSchema.find({ sessionrating: { $exists: true, $not: { $size: 0 } } });
         var resObj = {
             trainerlist: [],
             noOfRecords: 0,
-            client_data: clientlist
+            client_data: clientlist,
+            rankinglist: rankinglist
         }
         if (req.body.availablestatus === 0) {
             const trainerlist = await Users.find({ statusid: 1, _id: { $in: (clientlist.bookmarktrainer || []) } });
@@ -348,7 +366,76 @@ const savetrainerlist = async (req, res) => {
                 return res.status(200).json({ status: 1, message: "Get successfully.", result: resObj });
             }
         }
+        // var sortObject = {};
+        // sortObject["_id"] = 1;
+        // var filter = {};
+        // if (req.body.availablestatus === 0) {
+        //     filter.statusid = 1;
+        //     filter._id = { $in: (clientlist.bookmarktrainer || []) };
+        // } else {
+        //     filter.statusid = 1;
+        //     filter.availablestatus = req.body.availablestatus;
+        //     filter._id = { $in: (clientlist.bookmarktrainer || []) };
+        // }
+        // console.log(filter);
+        // const trainerlist1 = await Users.find({ statusid: 1, _id: { $in: (clientlist.bookmarktrainer || []) } });
+        // console.log(trainerlist1);
+        // const trainerlist = await Users.aggregate([
+        //     { $match: filter },
+        //     // JOIN WITH SESSIONREQUEST
+        //     { "$addFields": { "tId": { "$toString": "$_id" } } },
+        //     {
+        //         $lookup: {
+        //             from: "sessionrequests",
+        //             localField: "tId",
+        //             foreignField: "trainerid",
+        //             as: "session_data",
+        //         }
+        //     },
+        //     { $unwind: { path: "$session_data", preserveNullAndEmptyArrays: true } },
+        //     { $unwind: { path: "$session_data.sessionrating", preserveNullAndEmptyArrays: true } },
+        //     {
+        //         $project: {
+        //             averageRating: {
+        //                 $cond: {
+        //                     if: { $eq: [{ $divide: [{ $avg: "$session_data.sessionrating.rate" }, 20] }, null] },
+        //                     then: 0,
+        //                     else: { $divide: [{ $avg: "$session_data.sessionrating.rate" }, 20] }
+        //                 }
+        //             },
+        //             _id: 1,
+        //             coverprofile: 1,
+        //             profile: 1,
+        //             firstname: 1,
+        //             lastname: 1,
+        //             email: 1,
+        //             phoneno: 1,
+        //             gender: 1,
+        //             aboutus: 1,
+        //             trainingstyle: 1,
+        //             quote: 1,
+        //             experience: 1,
+        //             specialitys: 1,
+        //             introduction: 1,
+        //             emailnotifications: 1,
+        //             maillinglist: 1,
+        //             textnotifications: 1,
+        //             statusid: 1,
+        //             availablestatus: 1,
+        //             videostatus: 1,
+        //             meetingid: 1
+        //         },
+        //     },
+        //     { $sort: sortObject },
+        // ]);
+        // console.log(trainerlist);
+        // if (trainerlist) {
+        //     resObj.noOfRecords = trainerlist.length || 0;
+        //     resObj.trainerlist = trainerlist.slice(((pageNumber - 1) * limitValue), (((pageNumber - 1) * limitValue) + limitValue));
+        //     return res.status(200).json({ status: 1, message: "Get successfully.", result: resObj });
+        // }
         return res.status(200).json({ status: 2, message: "Trainer not found." });
+
     }
     catch (err) {
         errorLog("savetrainerlist", req.body, err);
@@ -501,8 +588,8 @@ const trainerrating = async (req, res) => {
 
 const getworkoutcategory = async (req, res) => {
     try {
-        if (!req.user.isAuthenticated)
-            return res.status(200).json({ status: 2, message: "Please login to get profile." });
+        // if (!req.user.isAuthenticated)
+        //     return res.status(200).json({ status: 2, message: "Please login to get profile." });
 
         const adminlist = await WorkoutCategory.find({ active: true });
         if (adminlist)

@@ -5,6 +5,7 @@ const fs = require("fs");
 const Secretkey = process.env.APIKEY;
 const { SendMailHtml } = require("../EmailController");
 const { SendTextMessage } = require("../SMSController");
+const { pushNotification } = require("../PushNotificationController");
 const { errorLog } = require("../Errorcontroller");
 // Specify Stripe secret api key here
 const stripe = require("stripe")(Secretkey);
@@ -55,17 +56,27 @@ const savepayment = async (req, res) => {
                 //     userdata.save();
                 // }
                 // // Full Payment in Admin Account
+
+                // date: { type: Date, required: true },
+                // title: { type: String, required: true },
+                // message: { type: String, required: true },
+                // type: { type: String, required: true },
+                // userid: { type: String, required: true },
+                // resid: { type: String, required: true }
+                // Mail code.
+
                 // Mail code.
                 fs.readFile("./EmailTemplate/PurchasedSession.html", async (error, data) => {
                     if (error)
                         return res.status(200).json({ status: 2, message: "Something getting wrong.", error: error.toString() });
 
                     const emailbody = data.toString().replace("##Name##", req.user.firstname)
+                    .replace("##EntryDate##", paymentDetailsInput.date.toString())
                     .replace("##PlanType##", paymentDetailsInput.plantype.toString())
                     .replace("##NoOfSession##", paymentDetailsInput.noofsession.toString())
                     .replace("##Amount##", paymentDetailsInput.amount.toString());
 
-                    var emaildata = { "to": userdata.email, "subject": "Member Registration", "html": emailbody };
+                    var emaildata = { "to": userdata.email, "subject": "Purchase session", "html": emailbody };
 
                     let emailresult = await SendMailHtml(emaildata);
                     // if (emailresult === true)

@@ -1,9 +1,11 @@
 const ScheduleRequestSchema = require("../../Model/Client/SessionRequestSchema");
 const Users = require("../../Model/Client/UserSchema");
 const Trainers = require("../../Model/Trainer/UserSchema");
+const mongoose = require('mongoose');
+const fs = require("fs");
+const { SendMailHtml } = require("../EmailController");
 const { SendTextMessage } = require("../SMSController");
 const { errorLog } = require("../Errorcontroller");
-const mongoose = require('mongoose');
 
 const ScheduleRequestUpdate = async (req, res) => {
     try {
@@ -15,10 +17,27 @@ const ScheduleRequestUpdate = async (req, res) => {
             scheduleRequestInput.requeststatus = req.body.status;
             scheduleRequestInput.reason = (req.body.status == 1) ? "" : req.body.reason;
             scheduleRequestInput.save();
-            const userdata = await Users.findOne({ _id: mongoose.Types.ObjectId(scheduleRequestInput.userid) });
             const trainerdata = await Trainers.findOne({ _id: mongoose.Types.ObjectId(scheduleRequestInput.trainerid) });
-            // Client SMS Code
+            const userdata = Users.findOne({ _id: mongoose.Types.ObjectId(scheduleRequestInput.userid) });
             if (req.body.status != 1) {
+                // Email code
+                fs.readFile("./EmailTemplate/AppoinmentCancellation.htm", async (error, data) => {
+                    if (error)
+                        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: error.toString() });
+
+                    const emailbody = data.toString()
+                        .replace("##UserName##", userdata.firstname || "Client")
+                        .replace("##SenderName##", trainerdata.firstname || "Trainer")
+
+                    var emaildata = { "to": userdata.email, "subject": "Appoinment cancellation by trainer.", "html": emailbody };
+
+                    let emailresult = await SendMailHtml(emaildata);
+                    // if (emailresult === true)
+                    //     return res.status(200).json({ status: 1, message: "Favourite trainer successfully." });
+                    // else
+                    //     return res.status(200).json({ status: 2, message: "Something getting wrong." });
+                });
+                // SMS COde
                 let msg = userdata.firstname + " your session request is reject by " + trainerdata.firstname + "."
                 var jsonData = {
                     date: new Date(),
@@ -34,6 +53,41 @@ const ScheduleRequestUpdate = async (req, res) => {
                     data: jsonData
                 }
                 let smsresult = SendTextMessage(obj);
+            } else {
+                // Email code
+                fs.readFile("./EmailTemplate/AppoinmentApprove.htm", async (error, data) => {
+                    if (error)
+                        return res.status(200).json({ status: 2, message: "Something getting wrong.", error: error.toString() });
+
+                    const emailbody1 = data.toString()
+                        .replace("##UserName##", userdata.firstname || "Client")
+                        .replace("##SenderName##", trainerdata.firstname || "Trainer")
+
+                    var emaildat1a = { "to": userdata.email, "subject": "Appoinment approved by trainer.", "html": emailbody1 };
+
+                    let emailresult1 = await SendMailHtml(emaildata1);
+                    // if (emailresult === true)
+                    //     return res.status(200).json({ status: 1, message: "Favourite trainer successfully." });
+                    // else
+                    //     return res.status(200).json({ status: 2, message: "Something getting wrong." });
+                });
+
+                // SMS COde
+                let msg1 = userdata.firstname + " your session request is approve by " + trainerdata.firstname + "."
+                var jsonData1 = {
+                    date: new Date(),
+                    title: "Approve session request",
+                    description: msg1,
+                    type: req.user,
+                    sentby: req.user._id || "-",
+                    sentto: userdata._id || "-",
+                };
+                var obj1 = {
+                    number: userdata.phoneno,
+                    body: (msg1 || ""),
+                    data: jsonData1
+                }
+                let smsresult1 = SendTextMessage(obj1);
             }
 
             return res.status(200).json({ status: 1, message: (req.body.status == 1) ? "Request accepted successfully." : "Request rejected successfully." });
@@ -208,7 +262,7 @@ const getAcceptRequest = async (req, res) => {
                     _id: 1,
                     isVideocall: {
                         $cond: {
-                            if: { $gte: ["$enddatetime", d]} && { $lt: ["$startdatetime",d] },
+                            if: { $gte: ["$enddatetime", d] } && { $lt: ["$startdatetime", d] },
                             then: 1,
                             else: 0
                         }
@@ -247,12 +301,31 @@ const workout = async (req, res) => {
             scheduleRequestInput.sessionworkout = req.body;
             scheduleRequestInput.save();
 
-            const userdata = Users.findOne({ _id: scheduleRequestInput.userid });
+            const userdata = Users.findOne({ _id: mongoose.Types.ObjectId(scheduleRequestInput.userid) });
+            const trainerdata = Trainers.findOne({ _id: mongoose.Types.ObjectId(scheduleRequestInput.trainerid) });
+            // Client Email Code
+            fs.readFile("./EmailTemplate/PostWorkoutFrom.html", async (error, data) => {
+                if (error)
+                    return res.status(200).json({ status: 2, message: "Something getting wrong.", error: error.toString() });
+
+                const emailbody = data.toString()
+                    .replace("##TrainerName##", trainerdata.firstname || "Trainer")
+                    .replace("##ClientName##", userdata.firstname || "Client")
+
+                var emaildata = { "to": userdata.email, "subject": "Client Post Workout From.", "html": emailbody };
+
+                let emailresult = await SendMailHtml(emaildata);
+                // if (emailresult === true)
+                //     return res.status(200).json({ status: 1, message: "Favourite trainer successfully." });
+                // else
+                //     return res.status(200).json({ status: 2, message: "Something getting wrong." });
+            });
+
             // Client SMS Code
             let msg = userdata.firstname + " session workout form fill."
             var jsonData = {
                 date: new Date(),
-                title: "Fill session workout",
+                title: "Post session workout",
                 description: msg,
                 type: req.user,
                 sentby: req.user._id || "-",
